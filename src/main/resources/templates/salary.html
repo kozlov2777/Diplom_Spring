@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Зарплати</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 mt-5">
+            <h1 class="text-center mb-4">Зарплати</h1>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Ім’я</th>
+                    <th>Фамілія</th>
+                    <th>Зарплата</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${salary}">
+                    <td th:text="${s.firstName}"></td>
+                    <td th:text="${s.lastName}"></td>
+                    <td th:text="${s.salary}"></td>
+                </tr>
+                </tbody>
+
+
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

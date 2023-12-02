@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Список заказов</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 mt-5">
+            <h1 class="text-center mb-4">Список заказов</h1>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Айди</th>
+                    <th>Номер столика</th>
+                    <th>Дата создания</th>
+                    <th>Общая сумма</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="o : ${orderList}">
+                    <td><a th:href="@{'order_detail/' + ${o.id}}" th:text="${o.id}"></a></td>
+                    <td th:text="${o.tableNumber}"></td>
+                    <td th:text="${o.createdAt}"></td>
+                    <td th:text="${o.total}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
+

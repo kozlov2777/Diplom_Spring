@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Меню</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container">
+    <h1>Меню</h1>
+    <table class="table table-bordered">
+        <thead class="thead-dark">
+        <tr>
+            <th>Айди</th>
+            <th>Назва</th>
+            <th>Опис</th>
+            <th>Ціна</th>
+            <th>Категорія</th>
+            <th>Калорійність</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="m : ${menu}">
+            <td th:text="${m.id}"></td>
+            <td th:text="${m.name}"></td>
+            <td th:text="${m.description}"></td>
+            <td th:text="${m.price}"></td>
+            <td th:text="${m.category}"></td>
+            <td><a th:href="@{'/item_detail/' + ${m.id}}" th:text="${m.totalCalories}"></a></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

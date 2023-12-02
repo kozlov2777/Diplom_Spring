@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Статуси замовлень</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <h2 style="clear: both;">Готується</h2>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ІД</th>
+                    <th>Номер столика</th>
+                    <th>Блюдо</th>
+                    <th>Кількість</th>
+                    <th>Дата створення</th>
+                    <th>Сума</th>
+                    <th>Статус</th>
+                    <th>Робітник</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${orderStatus1}">
+                    <td><a th:href="@{'order_detail/' + ${order.id}}" th:text ="${order.id}"></a></td>
+                    <td><a th:href="@{'order_detail_by_table_number/' + ${order.tableNumber}}" th:text="${order.tableNumber}"></a></td>
+                    <td th:text="${order.name}"></td>
+                    <td th:text="${order.quantity}"></td>
+                    <td th:text="${order.createdAt}"></td>
+                    <td th:text="${order.total}"></td>
+                    <td><a th:href="@{'update_order_status/' + ${order.id}}"><span th:text="${order.status}"></span></a></td>
+                    <td th:text="${order.employeeFirstName}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-8">
+            <h2 style="clear: both;">Готово</h2>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>ІД</th>
+                    <th>Номер столика</th>
+                    <th>Блюдо</th>
+                    <th>Кількість</th>
+                    <th>Дата створення</th>
+                    <th>Сума</th>
+                    <th>Статус</th>
+                    <th>Робітник</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${orderStatus2}">
+                    <td><a th:href="@{'order_detail/' + ${order.id}}" th:text ="${order.id}"></a></td>
+                    <td><a th:href="@{'order_detail_by_table_number/' + ${order.tableNumber}}" th:text="${order.tableNumber}"></a></td>
+                    <td th:text="${order.name}"></td>
+                    <td th:text="${order.quantity}"></td>
+                    <td th:text="${order.createdAt}"></td>
+                    <td th:text="${order.total}"></td>
+                    <td><a th:href="@{'update_order_status_and_table/' + ${order.id}}"><span th:text="${order.status}"></span></a></td>
+                    <td th:text="${order.employeeFirstName}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
+

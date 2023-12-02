@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Деталі</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container">
+    <h1>Деталі</h1>
+    <table class="table table-bordered">
+        <thead class="thead-dark">
+        <tr>
+            <th>Блюдо</th>
+            <th>Кількість в гр або мл</th>
+            <th>Інгрідієнт</th>
+            <th>О.в.</th>
+            <th>Калорії в 1 гр</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="d : ${orderDetailList}">
+            <td th:text="${d.menuItemName}"></td>
+            <td th:text="${d.quantity}"></td>
+            <td th:text="${d.ingredientName}"></td>
+            <td th:text="${d.unit}"></td>
+            <td th:text="${d.calories}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

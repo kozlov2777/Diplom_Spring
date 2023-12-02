@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Список заказов для этого столика</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 mt-5">
+            <h1 class="text-center mb-4">Список заказов для этого столика</h1>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th>Id заказа</th>
+                    <th>Блюдо</th>
+                    <th>Кількість</th>
+                    <th>Дата создания</th>
+                    <th>Общая сумма</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="detail : ${detailByTable}">
+                    <td th:text="${detail.id}"></td>
+                    <td th:text="${detail.name}"></td>
+                    <td th:text="${detail.quantity}"></td>
+                    <td th:text="${detail.createdAt}"></td>
+                    <td th:text="${detail.total}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
