@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -59,6 +61,16 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     @Modifying
     @Query("UPDATE Tables t SET t.tableStatus.id = ?1 WHERE t.id = (SELECT o.table.id FROM Orders o WHERE o.id = ?2)")
     void updateTableStatus(Long table_status_id, Long orderId);
+
+
+    @Query("SELECT new com.example.demo.dto.OrderDto(o.id, o.table.id, o.createdAt, sum(oi.quantity*m.price)) from Orders o join Order_Items oi on o.id = oi.order.id join Menu_Items m on oi.item.id=m.id where o.createdAt between :startDate and :endDate group by o.id order by o.createdAt desc ")
+    List<OrderDto> getOrdersByDate(LocalDateTime startDate, LocalDateTime endDate);
+
+
+
+
+
+
 
 
 
