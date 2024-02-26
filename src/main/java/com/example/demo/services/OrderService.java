@@ -4,6 +4,8 @@ import com.example.demo.dto.OrderByStatusDto;
 import com.example.demo.dto.OrderDetailByTableDto;
 import com.example.demo.dto.OrderDetailDto;
 import com.example.demo.dto.OrderDto;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import com.example.demo.models.Orders;
 import com.example.demo.repositories.OrderRepository;
@@ -45,5 +47,9 @@ public class OrderService {
 
     public void save(Orders orders){
         orderRepository.save(orders);
+    }
+
+    public List<OrderDto> getOrdersByDate(LocalDateTime startDate, LocalDateTime endDate) {
+        return orderRepository.getOrdersByDate(startDate, endDate);
     }
 }

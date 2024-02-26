@@ -117,5 +117,23 @@ public class OrderController {
         }
     }
 
+    @GetMapping("/orders_by_date")
+    public String getOrdersByDate(@RequestParam(name = "start_date", required = false) String startDateStr,
+                                  @RequestParam(name = "end_date", required = false) String endDateStr,
+                                  Model model) {
+        if (startDateStr != null && endDateStr != null) {
+            LocalDateTime startDate = LocalDateTime.parse(startDateStr + "T00:00:00");
+            LocalDateTime endDate = LocalDateTime.parse(endDateStr + "T23:59:59");
+
+            List<OrderDto> ordersByDate = orderService.getOrdersByDate(startDate, endDate);
+            model.addAttribute("ordersByDate", ordersByDate);
+        } else {
+            return "orders_by_date";
+        }
+        return "orders_by_date";
+    }
+
+
+
 
 }
