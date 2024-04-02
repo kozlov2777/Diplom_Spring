@@ -67,12 +67,16 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     List<OrderDto> getOrdersByDate(LocalDateTime startDate, LocalDateTime endDate);
 
 
-
-
-
-
-
-
-
-
+    @Transactional
+    @Modifying
+    @Query("UPDATE Ingredients i " +
+            "SET i.quantity = i.quantity - ((SELECT MAX(ii.quantity) " +
+            "                                FROM Menu_Items m " +
+            "                                JOIN Ingredient_Items ii ON m.id = ii.item.id " +
+            "                                WHERE m.id = ?1) * ?2) " +
+            "WHERE i.id IN (SELECT ii.ingredient.id " +
+            "               FROM Menu_Items m " +
+            "               JOIN Ingredient_Items ii ON m.id = ii.item.id " +
+            "               WHERE m.id = ?1)")
+    void updateQuantityInIngredient(Long id, int count);
 }

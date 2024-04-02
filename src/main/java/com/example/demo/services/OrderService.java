@@ -52,4 +52,8 @@ public class OrderService {
     public List<OrderDto> getOrdersByDate(LocalDateTime startDate, LocalDateTime endDate) {
         return orderRepository.getOrdersByDate(startDate, endDate);
     }
+
+    public void updateIngredientsAfterOrderCreation(Long id, int count) {
+        orderRepository.updateQuantityInIngredient(id, count);
+    }
 }

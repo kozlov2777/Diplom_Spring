@@ -86,7 +86,7 @@ public class OrderController {
                                  @RequestParam("status_id") Long statusId,
                                  @RequestParam("item") Long itemId,
                                  @RequestParam("quantity") int quantity) {
-        Tables table = tableRepository.findById(1L).orElse(null);
+        Tables table = tableRepository.findById(tableId).orElse(null);
         Employees employee = employeeRepository.findById(employeeId).orElse(null);
         Statuses status = statusRepository.findById(statusId).orElse(null);
         Menu_Items menuItem = menuItemRepository.findById(itemId).orElse(null);
@@ -111,6 +111,7 @@ public class OrderController {
             orderItems.setItem(menuItem);
             orderItems.setQuantity(quantity);
             orderItemRepository.save(orderItems);
+            orderService.updateIngredientsAfterOrderCreation(menuItem.getId(), quantity);
             return "redirect:/";
         } else {
             return "redirect:/new_order";
