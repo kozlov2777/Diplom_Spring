@@ -3,6 +3,7 @@ package com.example.demo.repositories;
 import com.example.demo.dto.EmployeeListDto;
 import com.example.demo.dto.EmployeeSalaryDto;
 import com.example.demo.models.Employees;
+import com.example.demo.models.Roles;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -20,4 +21,6 @@ public interface EmployeeRepository extends JpaRepository<Employees, Long> {
     List<EmployeeListDto> getEmployeeList();
 
     Employees findByUsername(String username);
+
+
 }

@@ -38,5 +38,17 @@ public class EmployeeController {
     public String registerEmployee() {
         return "register";
     }
+
+    @GetMapping("/login")
+    public String login() {
+        return "login";
+    }
+
+    @GetMapping("/access-denied")
+    public String accessDeniedPage() {
+        return "access-denied"; // Перенаправте на сторінку з повідомленням про помилку доступу.
+    }
+
+
 }
 

@@ -13,6 +13,4 @@ public class EmployeeCreateDTO {
     private String username;
     private String password;
     private Long roleId;
-
-
 }

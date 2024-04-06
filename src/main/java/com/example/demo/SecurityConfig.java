@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -35,15 +34,31 @@ public class SecurityConfig {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
         authenticationManagerBuilder.userDetailsService(employeeService).passwordEncoder(bCryptPasswordEncoder());
         AuthenticationManager build = authenticationManagerBuilder.build();
-        http.authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/login","/register").permitAll()
-                .anyRequest().authenticated())
-                .csrf(AbstractHttpConfigurer::disable)
-                .logout(Customizer.withDefaults());
-        http.httpBasic(withDefaults());
-        http.authenticationManager(build);
 
-        return http.build();
+        SecurityFilterChain securityFilterChain = http
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/login", "/register").permitAll()
+                        .requestMatchers("/salary").hasAuthority("ADMIN")
+                        .anyRequest().authenticated())
+                .csrf(AbstractHttpConfigurer::disable)
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                )
+                .httpBasic(withDefaults())
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .permitAll()
+                )
+                .authenticationManager(build)
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .accessDeniedPage("/access-denied")
+                )
+                .build();
+
+        return securityFilterChain;
     }
 }
-// добавити ролі типу .requestMatchers("/register").hasRole("ADMIN")
+
