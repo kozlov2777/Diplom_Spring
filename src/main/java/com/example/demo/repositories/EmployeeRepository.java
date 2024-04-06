@@ -19,6 +19,5 @@ public interface EmployeeRepository extends JpaRepository<Employees, Long> {
     @Query("SELECT new com.example.demo.dto.EmployeeListDto(e.id, e.lastName)FROM Employees e WHERE e.role.id = 2")
     List<EmployeeListDto> getEmployeeList();
 
-
-
+    Employees findByUsername(String username);
 }
