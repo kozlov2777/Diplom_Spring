@@ -24,7 +24,7 @@ public class Orders {
 
     @ManyToMany
     @JoinTable(
-            name = "order_item",
+            name = "order_items",
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "menu_item_id")
     )
@@ -37,4 +37,7 @@ public class Orders {
     @ManyToOne
     @JoinColumn(name = "employee_id")
     private Employees employee;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private Set<Order_Items> orderItems;
 }
