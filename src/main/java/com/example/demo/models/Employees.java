@@ -20,4 +20,8 @@ public class Employees {
     @ManyToOne
     @JoinColumn(name = "role_id")
     private Roles role;
+
+    private String username;
+    private String password;
+
 }

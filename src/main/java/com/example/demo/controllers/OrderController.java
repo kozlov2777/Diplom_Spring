@@ -84,38 +84,44 @@ public class OrderController {
     public String createNewOrder(@RequestParam("table_id_id") Long tableId,
                                  @RequestParam("employee_id") Long employeeId,
                                  @RequestParam("status_id") Long statusId,
-                                 @RequestParam("item") Long itemId,
-                                 @RequestParam("quantity") int quantity) {
-        Tables table = tableRepository.findById(1L).orElse(null);
+                                 @RequestParam("item[]") List<Long> itemIds,
+                                 @RequestParam("quantity[]") List<Integer> quantities) {
+        Tables table = tableRepository.findById(tableId).orElse(null);
         Employees employee = employeeRepository.findById(employeeId).orElse(null);
         Statuses status = statusRepository.findById(statusId).orElse(null);
-        Menu_Items menuItem = menuItemRepository.findById(itemId).orElse(null);
 
-        if (table != null && employee != null && status != null && menuItem != null) {
+        if (table != null && employee != null && status != null) {
             Orders order = new Orders();
             order.setTable(table);
             order.setEmployee(employee);
             order.setStatus(status);
             order.setCreatedAt(LocalDateTime.now());
 
-            Set<Menu_Items> items = new HashSet<>();
-            for (int i = 0; i < quantity; i++) {
-                items.add(menuItem);
-            }
-            order.setItems(items);
-
             orderService.save(order);
             orderService.updateTableStatus(2L, order.getId());
-            Order_Items orderItems = new Order_Items();
-            orderItems.setOrder(order);
-            orderItems.setItem(menuItem);
-            orderItems.setQuantity(quantity);
-            orderItemRepository.save(orderItems);
+
+            for (int i = 0; i < itemIds.size(); i++) {
+                Long itemId = itemIds.get(i);
+                int quantity = quantities.get(i);
+                Menu_Items menuItem = menuItemRepository.findById(itemId).orElse(null);
+
+                if (menuItem != null) {
+                    Order_Items orderItems = new Order_Items();
+                    orderItems.setOrder(order);
+                    orderItems.setItem(menuItem);
+                    orderItems.setQuantity(quantity);
+                    orderItemRepository.save(orderItems);
+
+                    orderService.updateIngredientsAfterOrderCreation(menuItem.getId(), quantity);
+                }
+            }
+
             return "redirect:/";
         } else {
             return "redirect:/new_order";
         }
     }
+
 
     @GetMapping("/orders_by_date")
     public String getOrdersByDate(@RequestParam(name = "start_date", required = false) String startDateStr,

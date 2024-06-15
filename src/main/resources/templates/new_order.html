@@ -1,90 +1,3 @@
-<!--<!DOCTYPE html>-->
-<!--<html lang="en" xmlns:th="http://www.thymeleaf.org">-->
-<!--<head>-->
-<!--    <meta charset="UTF-8">-->
-<!--    <title>Створити нове замовлення</title>-->
-<!--    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">-->
-<!--</head>-->
-<!--<body>-->
-<!--<nav class="navbar navbar-expand-lg navbar-dark bg-dark">-->
-<!--    <a class="navbar-brand" th:href="@{/order_by_status}">Головна</a>-->
-<!--    &lt;!&ndash; Решта вашого коду для навігації тут &ndash;&gt;-->
-<!--</nav>-->
-<!--<div class="container">-->
-<!--    <h1 class="text-center">Створити нове замовлення</h1>-->
-<!--    <form method="post" th:action="@{/new_order}">-->
-<!--        <div class="form-group">-->
-<!--            <label for="table_id_id">Номер столика:</label>-->
-<!--            <select class="form-control" id="table_id_id" name="table_id_id">-->
-<!--                <option th:each="table : ${get_free_tables}" th:value="${table}" th:text="${table}"></option>-->
-<!--            </select>-->
-<!--        </div>-->
-<!--        <div class="form-group">-->
-<!--            <label for="employee_id">Офіціант:</label>-->
-<!--            <select class="form-control" id="employee_id" name="employee_id">-->
-<!--                <option th:each="employee : ${employeeList}" th:value="${employee.id}" th:text="${employee.last_name}"></option>-->
-<!--            </select>-->
-<!--        </div>-->
-<!--        <div class="form-group">-->
-<!--            <label for="status_id">Статус:</label>-->
-<!--            <select class="form-control" id="status_id" name="status_id">-->
-<!--                <option th:each="status : ${statusesList}" th:value="${status.id}" th:text="${status.name}"></option>-->
-<!--            </select>-->
-<!--        </div>-->
-<!--        <div class="form-group">-->
-<!--            <label for="items">Блюда:</label>-->
-<!--            <div class="input-group">-->
-<!--                <select class="custom-select" id="items" name="item">-->
-<!--                    <option th:each="menu_item : ${itemsDetailForCreate}" th:value="${menu_item.id}" th:text="${menu_item.name}"></option>-->
-<!--                </select>-->
-<!--                <input type="number" class="form-control" name="quantity" min="1" value="1">-->
-<!--                <div class="input-group-append">-->
-<!--                    <button class="btn btn-outline-primary" type="button" id="add_item">Додати</button>-->
-<!--                </div>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--        <div id="item_list">-->
-<!--            &lt;!&ndash; Placeholder for dynamically added items &ndash;&gt;-->
-<!--        </div>-->
-<!--        <button type="submit" class="btn btn-primary">Зберегти</button>-->
-<!--    </form>-->
-<!--</div>-->
-<!--<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
-<!--<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>-->
-<!--<script th:inline="javascript">-->
-<!--    /*<![CDATA[*/-->
-<!--    $(document).ready(function() {-->
-<!--        var itemsDetailForCreate = /*[[${itemsDetailForCreate}]]*/ []; // Отримуємо дані з контролера-->
-
-<!--        // Далі використовуйте ці дані для динамічного додавання опцій у випадаючий список-->
-<!--        var itemIndex = 1;-->
-<!--        $("#add_item").click(function() {-->
-<!--            var itemHtml = `-->
-<!--                <div class="form-group mt-2">-->
-<!--                    <div class="input-group">-->
-<!--                        <select class="custom-select" name="item">-->
-<!--                             <option value="{{ itemsDetailForCreate.id }}">{${itemsDetailForCreate.name }}</option>-->
-<!--                        </select>-->
-<!--                        <input type="number" class="form-control" name="quantity" min="1" value="1">-->
-<!--                        <div class="input-group-append">-->
-<!--                            <button class="btn btn-outline-danger remove_item" type="button">Видалити</button>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--            `;-->
-<!--            $("#item_list").append(itemHtml);-->
-<!--            itemIndex++;-->
-<!--        });-->
-
-<!--    // Dynamically remove items from the form-->
-<!--        $(document).on("click", ".remove_item", function() {-->
-<!--            $(this).closest(".form-group").remove();-->
-<!--        });-->
-<!--    });-->
-<!--</script>-->
-
-<!--</body>-->
-<!--</html>-->
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -118,18 +31,27 @@
             </select>
         </div>
 
-        <div class="form-group">
-            <label for="items">Блюда:</label>
-            <div class="input-group">
-                <select class="custom-select" id="items" name="item">
-                    <option th:each="menu_item : ${itemsDetailForCreate}" th:value="${menu_item.id}" th:text="${menu_item.name}"></option>
-                </select>
-                <input type="number" class="form-control" name="quantity" min="1" value="1">
+        <div id="items-group">
+            <div class="form-group item-group">
+                <label for="items">Блюда:</label>
+                <div class="input-group">
+                    <select class="custom-select" id="items" name="item[]">
+                        <option th:each="menu_item : ${itemsDetailForCreate}" th:value="${menu_item.id}" th:text="${menu_item.name}"></option>
+                    </select>
+                    <input type="number" class="form-control" name="quantity[]" min="1" value="1">
+                </div>
             </div>
         </div>
+        <button type="button" id="add-item" class="btn btn-secondary">Добавити страву</button>
 
         <button type="submit" class="btn btn-primary">Зберегти</button>
     </form>
 </div>
+<script>
+    document.getElementById('add-item').addEventListener('click', function() {
+        var itemGroup = document.querySelector('.item-group').cloneNode(true);
+        document.getElementById('items-group').appendChild(itemGroup);
+    });
+</script>
 </body>
 </html>
