@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Налаштування графіку</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Налаштування кількості працівників на зміну</h2>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <a href="/schedule" class="btn btn-secondary mb-3">← Назад до графіку</a>
+            
+            <div class="card" th:each="settings : ${settingsList}">
+                <div class="card-header">
+                    <h5 th:text="${settings.shiftName}"></h5>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/schedule/settings/save}" method="post">
+                        <input type="hidden" name="shiftId" th:value="${settings.shiftId}">
+                        
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Кількість офіціантів:</label>
+                            <div class="col-sm-8">
+                                <input type="number" name="waitersCount" th:value="${settings.waitersCount}" 
+                                       class="form-control" min="1" max="10" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row">
+                            <label class="col-sm-4 col-form-label">Кількість кухарів:</label>
+                            <div class="col-sm-8">
+                                <input type="number" name="cooksCount" th:value="${settings.cooksCount}" 
+                                       class="form-control" min="1" max="10" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Зберегти</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
+

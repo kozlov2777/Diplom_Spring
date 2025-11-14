@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Графік роботи</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .schedule-table { font-size: 14px; }
+        .schedule-table th { background-color: #343a40; color: white; }
+        .day-off { background-color: #f8d7da; }
+        .work-day { background-color: #d4edda; }
+        .employee-name { font-weight: bold; }
+        .shift-name { color: #007bff; font-size: 12px; }
+        .btn-sm { font-size: 11px; padding: 2px 5px; }
+    </style>
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="text-center mb-4">Графік роботи</h2>
+            
+            <!-- Навігація по тижнях -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a th:href="@{/schedule(weekStart=${previousWeek})}" class="btn btn-secondary">← Попередній тиждень</a>
+                <h4><span th:text="${#temporals.format(startDate, 'dd.MM.yyyy')}"></span> - 
+                    <span th:text="${#temporals.format(endDate, 'dd.MM.yyyy')}"></span></h4>
+                <a th:href="@{/schedule(weekStart=${nextWeek})}" class="btn btn-secondary">Наступний тиждень →</a>
+            </div>
+
+            <!-- Форма генерації графіку -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5>Згенерувати графік</h5>
+                    <form th:action="@{/schedule/generate}" method="post" class="form-inline">
+                        <label class="mr-2">Від:</label>
+                        <input type="date" name="startDate" th:value="${startDate}" class="form-control mr-2" required>
+                        <label class="mr-2">До:</label>
+                        <input type="date" name="endDate" th:value="${endDate}" class="form-control mr-2" required>
+                        <button type="submit" class="btn btn-primary">Згенерувати</button>
+                        <a th:href="@{/schedule/settings}" class="btn btn-info ml-2">Налаштування</a>
+                        <a th:href="@{/schedule/stats}" class="btn btn-success ml-2">Статистика</a>
+                        <a th:href="@{/schedule/export/excel(startDate=${startDate},endDate=${endDate})}" class="btn btn-warning ml-2">📥 Експорт в Excel</a>
+                        <a th:href="@{/shift-change-requests}" class="btn btn-secondary ml-2">📋 Запити на зміну</a>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Таблиця графіку -->
+            <table class="table table-bordered schedule-table">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Зміна</th>
+                        <th>Працівники</th>
+                        <th>Дії</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="dateEntry : ${groupedSchedule}">
+                        <td th:rowspan="${dateEntry.value.size()}" th:text="${#temporals.format(dateEntry.key, 'EEEE, dd.MM.yyyy', new java.util.Locale('uk'))}"></td>
+                        <td th:each="shiftEntry, iterStat : ${dateEntry.value}">
+                            <span th:if="${iterStat.index > 0}" style="display:none"></span>
+                            <span class="shift-name" th:text="${shiftEntry.value[0].shiftName}"></span>
+                        </td>
+                        <td th:each="shiftEntry, iterStat : ${dateEntry.value}">
+                            <span th:if="${iterStat.index > 0}" style="display:none"></span>
+                            <div th:each="schedule : ${shiftEntry.value}">
+                                <span th:class="${schedule.isDayOff ? 'badge badge-danger' : 'badge badge-success'}"
+                                      th:text="${schedule.firstName + ' ' + schedule.lastName + (schedule.isDayOff ? ' (Вихідний)' : '')}"></span>
+                            </div>
+                        </td>
+                        <td th:each="shiftEntry, iterStat : ${dateEntry.value}">
+                            <span th:if="${iterStat.index > 0}" style="display:none"></span>
+                            <div th:each="schedule : ${shiftEntry.value}">
+                                <button class="btn btn-sm btn-warning" 
+                                        th:onclick="'editSchedule(' + ${schedule.scheduleId} + ', \'' + ${dateEntry.key} + '\', ' + ${schedule.shiftId} + ', ' + ${schedule.isDayOff} + ')'">
+                                    Редагувати
+                                </button>
+                                <button class="btn btn-sm btn-info" 
+                                        th:onclick="'requestChange(' + ${schedule.scheduleId} + ', ' + ${schedule.employeeId} + ')'">
+                                    Запит
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(scheduleList)}">
+                        <td colspan="4" class="text-center">Графік не створений. Натисніть "Згенерувати"</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно редагування -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="editForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Редагувати запис</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="weekStart" th:value="${startDate}">
+                    <div class="form-group">
+                        <label>Зміна:</label>
+                        <select name="shiftId" id="shiftSelect" class="form-control">
+                            <option th:each="shift : ${shifts}" th:value="${shift.id}" th:text="${shift.name}"></option>
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="isDayOff" id="isDayOffCheck" class="form-check-input" value="true">
+                        <label class="form-check-label" for="isDayOffCheck">Вихідний день</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно запиту на зміну -->
+<div class="modal fade" id="requestModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="requestForm" action="/shift-change-request/create" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Запит на зміну графіку</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="scheduleId" id="requestScheduleId">
+                    <input type="hidden" name="employeeId" id="requestEmployeeId">
+                    <input type="hidden" name="weekStart" th:value="${startDate}">
+                    <div class="form-group">
+                        <label for="reason">Причина запиту:</label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" required 
+                                  placeholder="Наприклад: хворіє родич, особисті обставини..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Надіслати запит</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+function editSchedule(scheduleId, date, shiftId, isDayOff) {
+    $('#editForm').attr('action', '/schedule/update/' + scheduleId);
+    $('#shiftSelect').val(shiftId);
+    $('#isDayOffCheck').prop('checked', isDayOff);
+    $('#editModal').modal('show');
+}
+
+function requestChange(scheduleId, employeeId) {
+    $('#requestScheduleId').val(scheduleId);
+    $('#requestEmployeeId').val(employeeId);
+    $('#reason').val('');
+    $('#requestModal').modal('show');
+}
+</script>
+</body>
+</html>
+

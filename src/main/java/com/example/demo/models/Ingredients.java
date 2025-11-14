@@ -19,4 +19,5 @@ public class Ingredients {
     private Double quantity;
     private String unit;
     private Double calories;
+    private Double minQuantity; // Мінімальний залишок
 }

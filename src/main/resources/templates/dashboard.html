@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Дашборд менеджера</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        .stat-card {
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .revenue-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .orders-card { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .rating-card { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .employees-card { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        .notification-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        .employee-card {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .trend-up { color: #28a745; }
+        .trend-down { color: #dc3545; }
+    </style>
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">📊 Дашборд менеджера</h2>
+    
+    <!-- Сповіщення -->
+    <div class="alert alert-warning" th:if="${dashboard.pendingRequestsCount > 0}">
+        <strong>⚠️ Увага!</strong> 
+        <a th:href="@{/shift-change-requests}" th:text="${dashboard.pendingRequestsCount + ' нових запитів на зміну графіку'}"></a>
+    </div>
+    
+    <!-- Основні метрики -->
+    <div class="row">
+        <!-- Виручка -->
+        <div class="col-md-3">
+            <div class="stat-card revenue-card">
+                <div class="stat-label">💰 Виручка</div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(dashboard.todayRevenue, 0, 'COMMA', 0, 'POINT')} + ' грн'"></div>
+                <small>Сьогодні</small><br>
+                <small th:text="'Тиждень: ' + ${#numbers.formatDecimal(dashboard.weekRevenue, 0, 'COMMA', 0, 'POINT')} + ' грн'"></small><br>
+                <small th:text="'Місяць: ' + ${#numbers.formatDecimal(dashboard.monthRevenue, 0, 'COMMA', 0, 'POINT')} + ' грн'"></small>
+                <div th:if="${dashboard.revenueChange != 0}">
+                    <span th:classappend="${dashboard.revenueChange >= 0 ? 'trend-up' : 'trend-down'}">
+                        <strong th:text="${dashboard.revenueChange >= 0 ? '▲' : '▼'} + ' ' + ${#numbers.formatDecimal(Math.abs(dashboard.revenueChange), 0, 2)} + '%'"></strong>
+                    </span>
+                    <small> від минулого тижня</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Замовлення -->
+        <div class="col-md-3">
+            <div class="stat-card orders-card">
+                <div class="stat-label">🍽️ Замовлення</div>
+                <div class="stat-value" th:text="${dashboard.todayOrders}"></div>
+                <small>Сьогодні</small><br>
+                <small th:text="'Тиждень: ' + ${dashboard.weekOrders}"></small><br>
+                <small th:text="'Активних: ' + ${dashboard.activeOrders}"></small>
+            </div>
+        </div>
+        
+        <!-- Рейтинг -->
+        <div class="col-md-3">
+            <div class="stat-card rating-card">
+                <div class="stat-label">⭐ Рейтинг</div>
+                <div class="stat-value" th:text="${#numbers.formatDecimal(dashboard.todayAverageRating, 0, 1)} + '/5'"></div>
+                <small th:text="'Відгуків сьогодні: ' + ${dashboard.todayReviewsCount}"></small><br>
+                <small th:text="'Середній за тиждень: ' + ${#numbers.formatDecimal(dashboard.weekAverageRating, 0, 1)}"></small>
+            </div>
+        </div>
+        
+        <!-- Працівники -->
+        <div class="col-md-3">
+            <div class="stat-card employees-card">
+                <div class="stat-label">👥 На зміні</div>
+                <div class="stat-value" th:text="${dashboard.currentShift.size()}"></div>
+                <small>працівників зараз</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Графіки -->
+    <div class="row">
+        <!-- Виручка по днях -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>📈 Виручка за тиждень</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Замовлення по годинах -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🕐 Замовлення сьогодні по годинах</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="ordersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Додаткова інформація -->
+    <div class="row mt-4">
+        <!-- Поточна зміна -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>👥 Хто зараз працює</h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${#lists.isEmpty(dashboard.currentShift)}" class="text-muted">
+                        Немає працівників на зміні (можливо графік не згенерований)
+                    </div>
+                    <div th:each="emp : ${dashboard.currentShift}" class="employee-card">
+                        <strong th:text="${emp.firstName + ' ' + emp.lastName}"></strong>
+                        <span class="badge badge-primary ml-2" th:text="${emp.shiftName}"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Топ працівник -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🏆 Працівник тижня</h5>
+                </div>
+                <div class="card-body">
+                    <div th:if="${dashboard.topEmployee != null}">
+                        <h4 th:text="${dashboard.topEmployee.firstName + ' ' + dashboard.topEmployee.lastName}"></h4>
+                        <p>
+                            <strong>Робочих днів:</strong> <span th:text="${dashboard.topEmployee.workDaysCount}"></span><br>
+                            <strong>Вихідних:</strong> <span th:text="${dashboard.topEmployee.daysOffCount}"></span>
+                        </p>
+                        <a th:href="@{/salary}" class="btn btn-sm btn-primary">Переглянути зарплату</a>
+                    </div>
+                    <div th:if="${dashboard.topEmployee == null}" class="text-muted">
+                        Немає даних за поточний тиждень
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Швидкі посилання -->
+    <div class="row mt-4 mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>🔗 Швидкі дії</h5>
+                </div>
+                <div class="card-body">
+                    <a href="/new_order" class="btn btn-success mr-2">➕ Нове замовлення</a>
+                    <a href="/schedule" class="btn btn-info mr-2">📅 Графік роботи</a>
+                    <a href="/salary" class="btn btn-warning mr-2">💰 Зарплата</a>
+                    <a href="/reviews" class="btn btn-primary mr-2">⭐ Відгуки</a>
+                    <a href="/orders_view" class="btn btn-secondary mr-2">📋 Всі замовлення</a>
+                    <a href="/analytics" class="btn btn-danger mr-2">📊 Аналітика</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Графік виручки
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+const revenueData = {
+    /*[# th:each="entry : ${dashboard.weeklyRevenueChart}" ]*/
+    /*[# th:text="${entry.key}" ]*/'Пн'/*[/]*/: /*[# th:text="${entry.value}" ]*/0/*[/]*/,
+    /*[/]*/
+};
+
+new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: [/*[# th:each="entry, iterStat : ${dashboard.weeklyRevenueChart}" ]*/
+            /*[# th:text="${iterStat.index > 0 ? ',' : ''}" ]*//*[/]*/
+            /*[[${entry.key}]]*/
+        /*[/]*/],
+        datasets: [{
+            label: 'Виручка (грн)',
+            data: [/*[# th:each="entry, iterStat : ${dashboard.weeklyRevenueChart}" ]*/
+                /*[# th:text="${iterStat.index > 0 ? ',' : ''}" ]*//*[/]*/
+                /*[[${entry.value}]]*/
+            /*[/]*/],
+            borderColor: 'rgb(102, 126, 234)',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: true }
+        }
+    }
+});
+
+// Графік замовлень
+const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+new Chart(ordersCtx, {
+    type: 'bar',
+    data: {
+        labels: [/*[# th:each="entry, iterStat : ${dashboard.hourlyOrdersChart}" ]*/
+            /*[# th:text="${iterStat.index > 0 ? ',' : ''}" ]*//*[/]*/
+            /*[[${entry.key}]]*/
+        /*[/]*/],
+        datasets: [{
+            label: 'Замовлень',
+            data: [/*[# th:each="entry, iterStat : ${dashboard.hourlyOrdersChart}" ]*/
+                /*[# th:text="${iterStat.index > 0 ? ',' : ''}" ]*//*[/]*/
+                /*[[${entry.value}]]*/
+            /*[/]*/],
+            backgroundColor: 'rgba(245, 87, 108, 0.8)',
+            borderColor: 'rgb(245, 87, 108)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: true }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { stepSize: 1 }
+            }
+        }
+    }
+});
+</script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
+

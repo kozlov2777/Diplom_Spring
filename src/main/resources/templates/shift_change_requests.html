@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Запити на зміну графіку</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .request-card { margin-bottom: 15px; }
+        .status-pending { border-left: 4px solid #ffc107; }
+    </style>
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Запити на зміну графіку</h2>
+    
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <a href="/schedule" class="btn btn-secondary mb-3">← Назад до графіку</a>
+            
+            <div th:if="${#lists.isEmpty(requests)}" class="alert alert-info text-center">
+                Немає активних запитів
+            </div>
+            
+            <div th:each="request : ${requests}" class="card request-card status-pending">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="card-title">
+                                <span th:text="${request.firstName + ' ' + request.lastName}"></span>
+                            </h5>
+                            <p class="card-text">
+                                <strong>Дата:</strong> <span th:text="${#temporals.format(request.workDate, 'dd.MM.yyyy (EEEE)', new java.util.Locale('uk'))}"></span><br>
+                                <strong>Зміна:</strong> <span th:text="${request.shiftName}"></span><br>
+                                <strong>Причина:</strong> <span th:text="${request.reason}"></span><br>
+                                <strong>Подано:</strong> <span th:text="${#temporals.format(request.requestedAt, 'dd.MM.yyyy HH:mm')}"></span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <form th:action="@{'/shift-change-request/approve/' + ${request.id}}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-success">✓ Схвалити</button>
+                            </form>
+                            <form th:action="@{'/shift-change-request/reject/' + ${request.id}}" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-danger">✗ Відхилити</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
+

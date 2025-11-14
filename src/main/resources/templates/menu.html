@@ -2,36 +2,188 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Меню</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Меню ресторану</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .menu-item {
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .menu-item:hover {
+            background-color: #f8f9fa;
+        }
+        .item-name {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 18px;
+        }
+        .item-price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .item-calories {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .category-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        .filter-tabs {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        .filter-btn {
+            border-radius: 25px;
+            padding: 10px 25px;
+            margin: 5px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="~{navbar}"></div>
-<div class="container">
-    <h1>Меню</h1>
-    <table class="table table-bordered">
-        <thead class="thead-dark">
-        <tr>
-            <th>Айди</th>
-            <th>Назва</th>
-            <th>Опис</th>
-            <th>Ціна</th>
-            <th>Категорія</th>
-            <th>Калорійність</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="m : ${menu}">
-            <td th:text="${m.id}"></td>
-            <td th:text="${m.name}"></td>
-            <td th:text="${m.description}"></td>
-            <td th:text="${m.price}"></td>
-            <td th:text="${m.category}"></td>
-            <td><a th:href="@{'/item_detail/' + ${m.id}}" th:text="${m.totalCalories}"></a></td>
-        </tr>
-        </tbody>
-    </table>
+
+<div class="container mt-4 mb-5">
+    <div class="section-header">
+        <h1>🍽️ Меню ресторану</h1>
+        <p class="mb-0">Всі доступні страви та напої</p>
+    </div>
+
+    <div class="filter-tabs">
+        <div class="row">
+            <div class="col-md-8">
+                <div id="categoryFilters">
+                    <button class="filter-btn active" data-category="all">Всі</button>
+                    <!-- Категорії будуть додані динамічно -->
+                </div>
+            </div>
+            <div class="col-md-4">
+                <input type="text" id="searchMenu" class="form-control" placeholder="🔍 Пошук страв...">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" id="menuTable">
+                <thead>
+                    <tr>
+                        <th width="5%">#</th>
+                        <th width="20%">Назва</th>
+                        <th width="30%">Опис</th>
+                        <th width="10%">Ціна</th>
+                        <th width="15%">Категорія</th>
+                        <th width="10%">Калорії</th>
+                        <th width="10%">Деталі</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="menu-item" th:each="m : ${menu}" th:data-category="${m.category}">
+                        <td th:text="${m.id}"></td>
+                        <td>
+                            <div class="item-name" th:text="${m.name}"></div>
+                        </td>
+                        <td>
+                            <small class="text-muted" th:text="${m.description}"></small>
+                        </td>
+                        <td>
+                            <span class="item-price" th:text="${m.price + ' грн'}"></span>
+                        </td>
+                        <td>
+                            <span class="category-badge" th:text="${m.category}"></span>
+                        </td>
+                        <td>
+                            <span class="item-calories" th:text="${m.totalCalories + ' ккал'}"></span>
+                        </td>
+                        <td>
+                            <a th:href="@{'/item_detail/' + ${m.id}}" class="btn btn-sm btn-primary">
+                                Інфо →
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="noResults" style="display:none;" class="text-center py-5">
+        <h4 class="text-muted">Страви не знайдено</h4>
+    </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+// Збираємо унікальні категорії
+const categories = new Set();
+$('.menu-item').each(function() {
+    categories.add($(this).data('category'));
+});
+
+// Додаємо кнопки фільтрів
+categories.forEach(category => {
+    $('#categoryFilters').append(`
+        <button class="filter-btn" data-category="${category}">${category}</button>
+    `);
+});
+
+// Фільтрація за категорією
+$('.filter-btn').click(function() {
+    $('.filter-btn').removeClass('active');
+    $(this).addClass('active');
+    
+    const category = $(this).data('category');
+    
+    if (category === 'all') {
+        $('.menu-item').show();
+    } else {
+        $('.menu-item').each(function() {
+            $(this).toggle($(this).data('category') === category);
+        });
+    }
+    
+    checkResults();
+});
+
+// Пошук
+$('#searchMenu').on('input', function() {
+    const search = $(this).val().toLowerCase();
+    
+    $('.menu-item').each(function() {
+        const text = $(this).text().toLowerCase();
+        $(this).toggle(text.includes(search));
+    });
+    
+    checkResults();
+});
+
+function checkResults() {
+    const hasVisible = $('.menu-item:visible').length > 0;
+    $('#noResults').toggle(!hasVisible);
+    $('#menuTable').toggle(hasVisible);
+}
+</script>
 </body>
 </html>

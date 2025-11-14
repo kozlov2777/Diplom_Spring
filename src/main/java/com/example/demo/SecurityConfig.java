@@ -38,6 +38,7 @@ public class SecurityConfig {
         SecurityFilterChain securityFilterChain = http
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/login", "/register").permitAll()
+                        .requestMatchers("/feedback/**").permitAll()
                         .requestMatchers("/salary").hasAuthority("ADMIN")
                         .anyRequest().authenticated())
                 .csrf(AbstractHttpConfigurer::disable)
@@ -47,9 +48,10 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                 )
-                .httpBasic(withDefaults())
                 .formLogin(form -> form
                         .loginPage("/login")
+                        .defaultSuccessUrl("/orders_view", true)
+                        .failureUrl("/login?error=true")
                         .permitAll()
                 )
                 .authenticationManager(build)

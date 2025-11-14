@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Список відгуків</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .rating-stars {
+            color: #ffc107;
+            font-size: 18px;
+        }
+        .review-comment {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .review-row:hover {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10 mt-5">
+            <h1 class="text-center mb-4">Список відгуків клієнтів</h1>
+            <div th:if="${#lists.isEmpty(reviews)}" class="alert alert-info text-center">
+                Поки що немає жодного відгуку.
+            </div>
+            <table th:if="${!#lists.isEmpty(reviews)}" class="table table-striped">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Замовлення</th>
+                    <th>Оцінка</th>
+                    <th>Коментар</th>
+                    <th>Ім'я клієнта</th>
+                    <th>Дата</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="review : ${reviews}" class="review-row">
+                    <td th:text="${review.id}"></td>
+                    <td><a th:href="@{'/order_detail/' + ${review.orderId}}" th:text="${review.orderId}"></a></td>
+                    <td>
+                        <span class="rating-stars">
+                            <span th:each="i : ${#numbers.sequence(1, review.rating)}">★</span>
+                            <span style="color: #ddd;" th:each="i : ${#numbers.sequence(review.rating + 1, 5)}">★</span>
+                        </span>
+                    </td>
+                    <td>
+                        <span class="review-comment" th:text="${review.comment}" th:title="${review.comment}"></span>
+                    </td>
+                    <td th:text="${review.customerName != null && !review.customerName.isEmpty() ? review.customerName : 'Анонім'}"></td>
+                    <td th:text="${#temporals.format(review.createdAt, 'dd.MM.yyyy HH:mm')}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
+

@@ -46,6 +46,7 @@ public class OrderController {
     public String viewOrderDetail(@PathVariable("order_id") Long orderId, Model model) {
         List<OrderDetailDto> orderDetailList = orderService.getOrderById(orderId);
         model.addAttribute("orderDetailList", orderDetailList);
+        model.addAttribute("orderId", orderId);
         return "order_detail";
     }
 

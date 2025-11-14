@@ -1,37 +1,152 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Зарплати</title>
+    <title>Зарплата співробітників</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .salary-card {
+            border-left: 4px solid #007bff;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        .salary-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .salary-total {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .salary-increase {
+            color: #28a745;
+        }
+        .salary-decrease {
+            color: #dc3545;
+        }
+        .performance-badge {
+            font-size: 20px;
+            padding: 5px 10px;
+        }
+        .breakdown-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .breakdown-item:last-child {
+            border-bottom: none;
+        }
+        .top-employee {
+            border-left-color: #ffc107;
+            background-color: #fffbf0;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="~{navbar}"></div>
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8 mt-5">
-            <h1 class="text-center mb-4">Зарплати</h1>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Ім’я</th>
-                    <th>Фамілія</th>
-                    <th>Зарплата</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="s : ${salary}">
-                    <td th:text="${s.firstName}"></td>
-                    <td th:text="${s.lastName}"></td>
-                    <td th:text="${s.salary}"></td>
-                </tr>
-                </tbody>
-
-
-            </table>
+<div class="container-fluid mt-4">
+    <h2 class="text-center mb-4">💰 Зарплата співробітників</h2>
+    
+    <!-- Фільтр по періоду -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form th:action="@{/salary}" method="get" class="form-inline">
+                <label class="mr-2">Період:</label>
+                <input type="date" name="startDate" th:value="${startDate}" class="form-control mr-2" required>
+                <label class="mr-2">-</label>
+                <input type="date" name="endDate" th:value="${endDate}" class="form-control mr-2" required>
+                <button type="submit" class="btn btn-primary">Показати</button>
+                <a th:href="@{/salary/settings}" class="btn btn-info ml-2">⚙️ Налаштування ставок</a>
+            </form>
         </div>
     </div>
+
+    <!-- Топ-3 працівники -->
+    <div class="alert alert-warning" th:if="${!#lists.isEmpty(salaries)}">
+        <h5>🏆 Топ-3 працівники місяця:</h5>
+        <span th:each="salary, iterStat : ${salaries}" th:if="${iterStat.index < 3}">
+            <strong th:text="${iterStat.index + 1 + '. ' + salary.firstName + ' ' + salary.lastName}"></strong> 
+            (<span th:text="${salary.totalSalary + ' грн'}"></span>)
+            <span th:if="${iterStat.index < 2}">, </span>
+        </span>
+    </div>
+
+    <!-- Картки зарплат -->
+    <div class="row">
+        <div class="col-md-6" th:each="salary, iterStat : ${salaries}">
+            <div class="card salary-card" th:classappend="${iterStat.index < 3 ? 'top-employee' : ''}">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <span th:if="${iterStat.index == 0}">🥇</span>
+                            <span th:if="${iterStat.index == 1}">🥈</span>
+                            <span th:if="${iterStat.index == 2}">🥉</span>
+                            <span th:text="${salary.firstName + ' ' + salary.lastName}"></span>
+                        </h5>
+                        <span class="badge badge-secondary" th:text="${salary.roleName}"></span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Підсумкова зарплата -->
+                    <div class="text-center mb-3">
+                        <div class="salary-total" th:text="${#numbers.formatDecimal(salary.totalSalary, 0, 'COMMA', 2, 'POINT') + ' грн'}"></div>
+                        <span class="performance-badge" th:text="${salary.performanceLevel}"></span>
+                    </div>
+
+                    <!-- Порівняння з минулим періодом -->
+                    <div class="text-center mb-3" th:if="${salary.previousSalary != null}">
+                        <small>Минулий період: <span th:text="${#numbers.formatDecimal(salary.previousSalary, 0, 'COMMA', 2, 'POINT') + ' грн'}"></span></small><br>
+                        <span th:classappend="${salary.salaryChange >= 0 ? 'salary-increase' : 'salary-decrease'}">
+                            <strong th:text="${salary.salaryChange >= 0 ? '▲' : '▼'} + ${#numbers.formatDecimal(Math.abs(salary.salaryChange), 0, 'COMMA', 2, 'POINT')} + ' грн (' + ${salary.salaryChangePercent} + '%)'"></strong>
+                        </span>
+                    </div>
+
+                    <!-- Детальний розклад -->
+                    <hr>
+                    <h6>Детальний розклад:</h6>
+                    
+                    <div class="breakdown-item">
+                        <div class="d-flex justify-content-between">
+                            <span>💼 Базова зарплата:</span>
+                            <strong th:text="${#numbers.formatDecimal(salary.baseSalary, 0, 'COMMA', 2, 'POINT') + ' грн'}"></strong>
+                        </div>
+                        <small class="text-muted" th:text="${salary.hoursWorked + ' год × ' + salary.hourlyRate + ' грн/год'}"></small>
+                    </div>
+
+                    <div class="breakdown-item">
+                        <div class="d-flex justify-content-between">
+                            <span>🍽️ Бонус за замовлення:</span>
+                            <strong th:text="${#numbers.formatDecimal(salary.orderBonusTotal, 0, 'COMMA', 2, 'POINT') + ' грн'}"></strong>
+                        </div>
+                        <small class="text-muted" th:text="${salary.ordersCompleted + ' замовлень × ' + salary.orderBonus + ' грн'}"></small>
+                    </div>
+
+                    <div class="breakdown-item">
+                        <div class="d-flex justify-content-between">
+                            <span>⭐ Премія за відгуки:</span>
+                            <strong th:text="${#numbers.formatDecimal(salary.reviewBonus, 0, 'COMMA', 2, 'POINT') + ' грн'}"></strong>
+                        </div>
+                        <small class="text-muted" th:text="${salary.reviewsCount + ' відгуків, середня оцінка: ' + salary.averageRating + '/5'}"></small>
+                    </div>
+
+                    <div class="breakdown-item" th:if="${salary.absences > 0}">
+                        <div class="d-flex justify-content-between">
+                            <span class="text-danger">⚠️ Штрафи:</span>
+                            <strong class="text-danger" th:text="'-' + ${#numbers.formatDecimal(salary.penaltiesTotal, 0, 'COMMA', 2, 'POINT')} + ' грн'"></strong>
+                        </div>
+                        <small class="text-muted" th:text="${salary.absences + ' прогулів × ' + salary.absencePenalty + ' грн'}"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(salaries)}" class="alert alert-info text-center mt-4">
+        Немає даних за вибраний період. Можливо ще не згенерований графік роботи.
+    </div>
 </div>
+
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>

@@ -79,4 +79,8 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
             "               JOIN Ingredient_Items ii ON m.id = ii.item.id " +
             "               WHERE m.id = ?1)")
     void updateQuantityInIngredient(Long id, int count);
+
+    @Query("SELECT COUNT(o) FROM Orders o WHERE o.employee.id = :employeeId " +
+            "AND o.createdAt BETWEEN :startDate AND :endDate")
+    Long countOrdersByEmployeeAndPeriod(Long employeeId, java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
 }
