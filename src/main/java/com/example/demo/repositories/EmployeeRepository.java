@@ -17,7 +17,7 @@ public interface EmployeeRepository extends JpaRepository<Employees, Long> {
             "GROUP BY e.id, e.firstName, e.lastName")
     List<EmployeeSalaryDto> getEmployeeSalaries();
 
-    @Query("SELECT new com.example.demo.dto.EmployeeListDto(e.id, e.lastName)FROM Employees e WHERE e.role.id = 2 or e.role.id = 3")
+    @Query("SELECT new com.example.demo.dto.EmployeeListDto(e.id, e.lastName) FROM Employees e WHERE e.role.id = 3")
     List<EmployeeListDto> getEmployeeList();
 
     Employees findByUsername(String username);

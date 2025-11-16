@@ -70,6 +70,9 @@
                     <a class="nav-link" href="/tables_status">🪑 Столики</a>
                 </li>
                 <li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
+                    <a class="nav-link" href="/register">👥 Управління персоналом</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasAuthority('ADMIN')">
                     <a class="nav-link" href="/salary">💰 Зарплата</a>
                 </li>
                 <li class="nav-item" sec:authorize="hasAuthority('ADMIN')">

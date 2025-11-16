@@ -53,6 +53,12 @@
             background: #667eea;
             color: white;
         }
+        /* Акуратні дропдауни для блоку «Основна інформація» */
+        .select-clean {
+            line-height: 1.5 !important;      /* щоб текст не врізався по вертикалі */
+            padding-top: .5rem;
+            padding-bottom: .5rem;
+        }
     </style>
 </head>
 <body>
@@ -73,26 +79,28 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Номер столика</label>
-                                <select class="form-control" id="tableSelect" required>
-                                    <option value="">Оберіть столик...</option>
+                                <label>🪑 Номер столика</label>
+                                <select class="form-control form-control-lg select-clean" id="tableSelect" name="tableSelect" required>
+                                    <option value="" disabled selected>Оберіть столик...</option>
                                     <option th:each="table : ${get_free_tables}" th:value="${table}" th:text="'Столик ' + ${table}"></option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Офіціант</label>
-                                <select class="form-control" id="employeeSelect" required>
-                                    <option value="">Оберіть офіціанта...</option>
-                                    <option th:each="employee : ${employeeList}" th:value="${employee.id}" th:text="${employee.last_name}"></option>
+                                <label>🧑‍🍳 Офіціант</label>
+                                <select class="form-control form-control-lg select-clean" id="employeeSelect" name="employeeSelect" required>
+                                    <option value="" disabled selected>Оберіть офіціанта...</option>
+                                    <option th:each="employee : ${employeeList}"
+                                            th:value="${employee.id}"
+                                            th:text="${employee.last_name}"></option>
                                 </select>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Статус</label>
-                                <select class="form-control" id="statusSelect" required>
+                                <label>📌 Статус</label>
+                                <select class="form-control form-control-lg select-clean" id="statusSelect" name="statusSelect" required>
                                     <option th:each="status : ${statusesList}" th:value="${status.id}" th:text="${status.name}"></option>
                                 </select>
                             </div>
@@ -154,6 +162,21 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
+// Сортування дропдаунів після завантаження сторінки
+$(document).ready(function() {
+    // Столики по зростанню (1,2,3,...)
+    const tableOptions = $('#tableSelect option').not(':first').get().sort(function(a, b) {
+        return Number(a.value) - Number(b.value);
+    });
+    $('#tableSelect').append(tableOptions);
+
+    // Офіціанти по алфавіту
+    const empOptions = $('#employeeSelect option').not(':first').get().sort(function(a, b) {
+        return a.text.localeCompare(b.text, 'uk');
+    });
+    $('#employeeSelect').append(empOptions);
+});
+
 let orderItems = {};
 
 // Додавання/видалення страви
