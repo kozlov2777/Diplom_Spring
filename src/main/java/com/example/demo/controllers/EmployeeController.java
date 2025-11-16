@@ -6,13 +6,18 @@ import com.example.demo.dto.SalaryDetailDto;
 import com.example.demo.dto.SalarySettingsDto;
 import com.example.demo.services.EmployeeService;
 import com.example.demo.services.SalaryService;
+import com.example.demo.services.ExcelExportService;
 import org.springframework.web.bind.annotation.GetMapping;
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import java.io.IOException;
 
 
 @Controller
@@ -20,10 +25,12 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
     private final SalaryService salaryService;
+    private final ExcelExportService excelExportService;
 
-    public EmployeeController(EmployeeService employeeService, SalaryService salaryService) {
+    public EmployeeController(EmployeeService employeeService, SalaryService salaryService, ExcelExportService excelExportService) {
         this.employeeService = employeeService;
         this.salaryService = salaryService;
+        this.excelExportService = excelExportService;
     }
 
     @GetMapping("/salary")
@@ -40,6 +47,24 @@ public class EmployeeController {
         model.addAttribute("endDate", end);
         
         return "salary";
+    }
+
+    @GetMapping("/salary/export/excel")
+    public ResponseEntity<byte[]> exportSalaryToExcel(@RequestParam String startDate,
+                                                      @RequestParam String endDate) throws IOException {
+        LocalDate start = LocalDate.parse(startDate);
+        LocalDate end = LocalDate.parse(endDate);
+
+        List<SalaryDetailDto> salaries = salaryService.calculateSalaries(start, end);
+        byte[] excelFile = excelExportService.exportSalaryToExcel(salaries, start, end);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", "salary_" + start + "_" + end + ".xlsx");
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(excelFile);
     }
 
     @GetMapping("/salary/settings")

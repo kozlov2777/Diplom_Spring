@@ -6,18 +6,8 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/style.css">
     <style>
-        .salary-card {
-            border-left: 4px solid #007bff;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-        }
-        .salary-card:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transform: translateY(-2px);
-        }
         .salary-total {
-            font-size: 24px;
-            font-weight: bold;
+            font-weight: 700;
             color: #28a745;
         }
         .salary-increase {
@@ -26,20 +16,21 @@
         .salary-decrease {
             color: #dc3545;
         }
-        .performance-badge {
-            font-size: 20px;
-            padding: 5px 10px;
+        .table-salary th, .table-salary td {
+            vertical-align: middle;
+            font-size: 14px;
         }
-        .breakdown-item {
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
+        .table-salary thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-color: #dee2e6;
         }
-        .breakdown-item:last-child {
-            border-bottom: none;
+        .table-salary tbody tr:nth-child(even) {
+            background-color: #f8f9ff;
         }
-        .top-employee {
-            border-left-color: #ffc107;
-            background-color: #fffbf0;
+        .badge-role {
+            font-size: 12px;
+            padding: 4px 8px;
         }
     </style>
 </head>
@@ -58,6 +49,8 @@
                 <input type="date" name="endDate" th:value="${endDate}" class="form-control mr-2" required>
                 <button type="submit" class="btn btn-primary">Показати</button>
                 <a th:href="@{/salary/settings}" class="btn btn-info ml-2">⚙️ Налаштування ставок</a>
+                <a th:href="@{/salary/export/excel(startDate=${startDate}, endDate=${endDate})}"
+                   class="btn btn-success ml-2">⬇️ Експорт в Excel</a>
             </form>
         </div>
     </div>
@@ -72,73 +65,47 @@
         </span>
     </div>
 
-    <!-- Картки зарплат -->
-    <div class="row">
-        <div class="col-md-6" th:each="salary, iterStat : ${salaries}">
-            <div class="card salary-card" th:classappend="${iterStat.index < 3 ? 'top-employee' : ''}">
-                <div class="card-header">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <span th:if="${iterStat.index == 0}">🥇</span>
-                            <span th:if="${iterStat.index == 1}">🥈</span>
-                            <span th:if="${iterStat.index == 2}">🥉</span>
-                            <span th:text="${salary.firstName + ' ' + salary.lastName}"></span>
-                        </h5>
-                        <span class="badge badge-secondary" th:text="${salary.roleName}"></span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <!-- Підсумкова зарплата -->
-                    <div class="text-center mb-3">
-                        <div class="salary-total" th:text="${#numbers.formatDecimal(salary.totalSalary, 0, 'COMMA', 2, 'POINT') + ' грн'}"></div>
-                        <span class="performance-badge" th:text="${salary.performanceLevel}"></span>
-                    </div>
-
-                    <!-- Порівняння з минулим періодом -->
-                    <div class="text-center mb-3" th:if="${salary.previousSalary != null}">
-                        <small>Минулий період: <span th:text="${#numbers.formatDecimal(salary.previousSalary, 0, 'COMMA', 2, 'POINT') + ' грн'}"></span></small><br>
-                        <span th:classappend="${salary.salaryChange >= 0 ? 'salary-increase' : 'salary-decrease'}">
-                            <strong th:text="${salary.salaryChange >= 0 ? '▲' : '▼'} + ${#numbers.formatDecimal(Math.abs(salary.salaryChange), 0, 'COMMA', 2, 'POINT')} + ' грн (' + ${salary.salaryChangePercent} + '%)'"></strong>
-                        </span>
-                    </div>
-
-                    <!-- Детальний розклад -->
-                    <hr>
-                    <h6>Детальний розклад:</h6>
-                    
-                    <div class="breakdown-item">
-                        <div class="d-flex justify-content-between">
-                            <span>💼 Базова зарплата:</span>
-                            <strong th:text="${#numbers.formatDecimal(salary.baseSalary, 0, 'COMMA', 2, 'POINT') + ' грн'}"></strong>
-                        </div>
-                        <small class="text-muted" th:text="${salary.hoursWorked + ' год × ' + salary.hourlyRate + ' грн/год'}"></small>
-                    </div>
-
-                    <div class="breakdown-item">
-                        <div class="d-flex justify-content-between">
-                            <span>🍽️ Бонус за замовлення:</span>
-                            <strong th:text="${#numbers.formatDecimal(salary.orderBonusTotal, 0, 'COMMA', 2, 'POINT') + ' грн'}"></strong>
-                        </div>
-                        <small class="text-muted" th:text="${salary.ordersCompleted + ' замовлень × ' + salary.orderBonus + ' грн'}"></small>
-                    </div>
-
-                    <div class="breakdown-item">
-                        <div class="d-flex justify-content-between">
-                            <span>⭐ Премія за відгуки:</span>
-                            <strong th:text="${#numbers.formatDecimal(salary.reviewBonus, 0, 'COMMA', 2, 'POINT') + ' грн'}"></strong>
-                        </div>
-                        <small class="text-muted" th:text="${salary.reviewsCount + ' відгуків, середня оцінка: ' + salary.averageRating + '/5'}"></small>
-                    </div>
-
-                    <div class="breakdown-item" th:if="${salary.absences > 0}">
-                        <div class="d-flex justify-content-between">
-                            <span class="text-danger">⚠️ Штрафи:</span>
-                            <strong class="text-danger" th:text="'-' + ${#numbers.formatDecimal(salary.penaltiesTotal, 0, 'COMMA', 2, 'POINT')} + ' грн'"></strong>
-                        </div>
-                        <small class="text-muted" th:text="${salary.absences + ' прогулів × ' + salary.absencePenalty + ' грн'}"></small>
-                    </div>
-                </div>
-            </div>
+    <!-- Таблиця зарплат -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-salary">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Працівник</th>
+                        <th>Роль</th>
+                        <th>Годин</th>
+                        <th>Ставка, грн/год</th>
+                        <th>База, грн</th>
+                        <th>Замовлень</th>
+                        <th>Бонус за замовлення, грн</th>
+                        <th>Відгуків / рейтинг</th>
+                        <th>Премія за відгуки, грн</th>
+                        <th>Прогули</th>
+                        <th>Штрафи, грн</th>
+                        <th>Всього, грн</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="salary, iterStat : ${salaries}">
+                        <td th:text="${iterStat.index + 1}"></td>
+                        <td th:text="${salary.lastName + ' ' + salary.firstName}"></td>
+                        <td>
+                            <span class="badge badge-secondary badge-role" th:text="${salary.roleName}"></span>
+                        </td>
+                        <td th:text="${salary.hoursWorked}"></td>
+                        <td th:text="${salary.hourlyRate}"></td>
+                        <td th:text="${#numbers.formatDecimal(salary.baseSalary, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="${salary.ordersCompleted}"></td>
+                        <td th:text="${#numbers.formatDecimal(salary.orderBonusTotal, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="${salary.reviewsCount + ' / ' + (salary.averageRating != null ? salary.averageRating : 0)}"></td>
+                        <td th:text="${#numbers.formatDecimal(salary.reviewBonus, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="${salary.absences}"></td>
+                        <td th:text="${#numbers.formatDecimal(salary.penaltiesTotal, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="salary-total" th:text="${#numbers.formatDecimal(salary.totalSalary, 0, 'COMMA', 2, 'POINT')}"></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 

@@ -13,10 +13,10 @@ import java.util.List;
 @Repository
 public interface MenuItemRepository extends JpaRepository<Menu_Items, Long> {
     @Query("SELECT new com.example.demo.dto.MenuItemDto(m.id, m.name, m.description, m.price, m.category.name, " +
-            "ROUND(SUM(i.calories * ii.quantity), 3)) " +
+            "COALESCE(ROUND(SUM(i.calories * ii.quantity), 3), 0)) " +
             "FROM Menu_Items m " +
-            "JOIN Ingredient_Items ii ON ii.item.id = m.id " +
-            "JOIN Ingredients i ON i.id = ii.ingredient.id " +
+            "LEFT JOIN Ingredient_Items ii ON ii.item.id = m.id " +
+            "LEFT JOIN Ingredients i ON i.id = ii.ingredient.id " +
             "GROUP BY m.id, m.name, m.description, m.price, m.category.name")
     List<MenuItemDto> getMenuItems();
 
