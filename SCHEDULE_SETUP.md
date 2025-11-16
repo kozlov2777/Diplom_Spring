@@ -22,7 +22,7 @@ INSERT INTO schedule_settings (shift_id, waiters_count, cooks_count) VALUES
 
 У системі мають бути зареєстровані:
 - Офіціанти (role_id = 3)
-- Кухарі (role_id = 4)
+- Кухарі (role_id = 2)
 
 ---
 

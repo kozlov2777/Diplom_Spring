@@ -45,7 +45,21 @@ public class EmployeeController {
     @GetMapping("/salary/settings")
     public String salarySettings(Model model) {
         List<SalarySettingsDto> settings = salaryService.getAllSettings();
+        
+        // Знаходимо налаштування для офіціантів (roleId = 3) та кухарів (roleId = 2)
+        SalarySettingsDto waiterSettings = settings.stream()
+                .filter(s -> s.getRoleId() == 3L)
+                .findFirst()
+                .orElse(new SalarySettingsDto(null, 3L, "Офіціант", 100.0, 10.0, 20.0, 200.0));
+        
+        SalarySettingsDto cookSettings = settings.stream()
+                .filter(s -> s.getRoleId() == 2L)
+                .findFirst()
+                .orElse(new SalarySettingsDto(null, 2L, "Кухар", 120.0, 15.0, 25.0, 250.0));
+        
         model.addAttribute("settings", settings);
+        model.addAttribute("waiterSettings", waiterSettings);
+        model.addAttribute("cookSettings", cookSettings);
         return "salary_settings";
     }
 

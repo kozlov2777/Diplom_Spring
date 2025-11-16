@@ -6,13 +6,97 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/style.css">
     <style>
-        .schedule-table { font-size: 14px; }
-        .schedule-table th { background-color: #343a40; color: white; }
+        .schedule-table { 
+            font-size: 13px; 
+            table-layout: fixed;
+            width: 100%;
+        }
+        .schedule-table th { 
+            background-color: #343a40; 
+            color: white;
+            padding: 8px 4px;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .schedule-table td {
+            padding: 6px 8px;
+            vertical-align: top;
+            border: 1px solid #dee2e6;
+        }
+        .schedule-table tbody tr {
+            border-bottom: 1px solid #dee2e6;
+        }
         .day-off { background-color: #f8d7da; }
         .work-day { background-color: #d4edda; }
-        .employee-name { font-weight: bold; }
-        .shift-name { color: #007bff; font-size: 12px; }
-        .btn-sm { font-size: 11px; padding: 2px 5px; }
+        .employee-name { 
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .employee-name .text-muted {
+            font-size: 10px;
+            font-weight: normal;
+            font-style: italic;
+        }
+        .shift-name { 
+            color: #007bff; 
+            font-size: 11px;
+            display: block;
+        }
+        .btn-sm { 
+            font-size: 11px; 
+            padding: 4px 8px;
+            margin: 0;
+            white-space: nowrap;
+        }
+        .employee-card {
+            margin-bottom: 6px;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .employee-card:hover {
+            background-color: #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .employee-card.active {
+            background-color: #d1ecf1;
+            border: 2px solid #0c5460;
+        }
+        .schedule-table .badge {
+            font-size: 11px;
+            padding: 3px 6px;
+        }
+        .employee-actions {
+            display: none;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #dee2e6;
+        }
+        .employee-actions.show {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .employee-actions .btn {
+            flex: 1;
+            min-width: 80px;
+        }
+        /* Компактна форма */
+        .form-inline .form-control {
+            font-size: 13px;
+        }
+        .form-inline .btn {
+            font-size: 13px;
+            padding: 6px 12px;
+        }
     </style>
 </head>
 <body>
@@ -52,42 +136,50 @@
             <table class="table table-bordered schedule-table">
                 <thead>
                     <tr>
-                        <th>Дата</th>
-                        <th>Зміна</th>
-                        <th>Працівники</th>
-                        <th>Дії</th>
+                        <th style="width: 20%;">Дата</th>
+                        <th style="width: 20%;">Зміна</th>
+                        <th style="width: 60%;">Працівники</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr th:each="dateEntry : ${groupedSchedule}">
-                        <td th:rowspan="${dateEntry.value.size()}" th:text="${#temporals.format(dateEntry.key, 'EEEE, dd.MM.yyyy', new java.util.Locale('uk'))}"></td>
-                        <td th:each="shiftEntry, iterStat : ${dateEntry.value}">
-                            <span th:if="${iterStat.index > 0}" style="display:none"></span>
-                            <span class="shift-name" th:text="${shiftEntry.value[0].shiftName}"></span>
-                        </td>
-                        <td th:each="shiftEntry, iterStat : ${dateEntry.value}">
-                            <span th:if="${iterStat.index > 0}" style="display:none"></span>
-                            <div th:each="schedule : ${shiftEntry.value}">
-                                <span th:class="${schedule.isDayOff ? 'badge badge-danger' : 'badge badge-success'}"
-                                      th:text="${schedule.firstName + ' ' + schedule.lastName + (schedule.isDayOff ? ' (Вихідний)' : '')}"></span>
-                            </div>
-                        </td>
-                        <td th:each="shiftEntry, iterStat : ${dateEntry.value}">
-                            <span th:if="${iterStat.index > 0}" style="display:none"></span>
-                            <div th:each="schedule : ${shiftEntry.value}">
-                                <button class="btn btn-sm btn-warning" 
-                                        th:onclick="'editSchedule(' + ${schedule.scheduleId} + ', \'' + ${dateEntry.key} + '\', ' + ${schedule.shiftId} + ', ' + ${schedule.isDayOff} + ')'">
-                                    Редагувати
-                                </button>
-                                <button class="btn btn-sm btn-info" 
-                                        th:onclick="'requestChange(' + ${schedule.scheduleId} + ', ' + ${schedule.employeeId} + ')'">
-                                    Запит
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+                    <th:block th:each="dateEntry : ${groupedSchedule}">
+                        <tr th:each="shiftEntry, shiftStat : ${dateEntry.value}">
+                            <td th:if="${shiftStat.index == 0}" 
+                                th:rowspan="${dateEntry.value.size()}" 
+                                th:text="${#temporals.format(dateEntry.key, 'EEEE, dd.MM.yyyy', new java.util.Locale('uk'))}">
+                            </td>
+                            <td>
+                                <span class="shift-name" th:text="${shiftEntry.value[0].shiftName}"></span>
+                            </td>
+                            <td>
+                                <div th:each="schedule : ${shiftEntry.value}" 
+                                     class="employee-card"
+                                     th:data-schedule-id="${schedule.scheduleId}"
+                                     th:data-date="${dateEntry.key}"
+                                     th:data-shift-id="${schedule.shiftId}"
+                                     th:data-is-day-off="${schedule.isDayOff}"
+                                     th:data-employee-id="${schedule.employeeId}"
+                                     onclick="toggleEmployeeActions(this)">
+                                    <div class="employee-name">
+                                        <span th:class="${schedule.isDayOff ? 'badge badge-danger' : 'badge badge-success'}"
+                                              th:text="${schedule.firstName + ' ' + schedule.lastName}"></span>
+                                        <small class="text-muted ml-1" th:text="'(' + ${schedule.roleName} + ')'"></small>
+                                        <small th:if="${schedule.isDayOff}" class="text-muted ml-1">(Вихідний)</small>
+                                    </div>
+                                    <div class="employee-actions">
+                                        <button class="btn btn-sm btn-warning" onclick="editFromCard(event, this.parentElement.parentElement)">
+                                            ✏️ Редагувати
+                                        </button>
+                                        <button class="btn btn-sm btn-info" onclick="requestFromCard(event, this.parentElement.parentElement)">
+                                            📝 Запит
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </th:block>
                     <tr th:if="${#lists.isEmpty(scheduleList)}">
-                        <td colspan="4" class="text-center">Графік не створений. Натисніть "Згенерувати"</td>
+                        <td colspan="3" class="text-center">Графік не створений. Натисніть "Згенерувати"</td>
                     </tr>
                 </tbody>
             </table>
@@ -157,6 +249,40 @@
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
+// Функція для показу/приховування кнопок при кліку на картку
+function toggleEmployeeActions(card) {
+    // Закриваємо всі інші відкриті картки
+    document.querySelectorAll('.employee-card.active').forEach(function(activeCard) {
+        if (activeCard !== card) {
+            activeCard.classList.remove('active');
+            activeCard.querySelector('.employee-actions').classList.remove('show');
+        }
+    });
+    
+    // Перемикаємо поточну картку
+    card.classList.toggle('active');
+    const actions = card.querySelector('.employee-actions');
+    actions.classList.toggle('show');
+}
+
+// Функції для кнопок всередині картки
+function editFromCard(event, card) {
+    event.stopPropagation(); // Зупиняємо спливання події
+    const scheduleId = card.getAttribute('data-schedule-id');
+    const date = card.getAttribute('data-date');
+    const shiftId = card.getAttribute('data-shift-id');
+    const isDayOff = card.getAttribute('data-is-day-off') === 'true';
+    editSchedule(scheduleId, date, shiftId, isDayOff);
+}
+
+function requestFromCard(event, card) {
+    event.stopPropagation(); // Зупиняємо спливання події
+    const scheduleId = card.getAttribute('data-schedule-id');
+    const employeeId = card.getAttribute('data-employee-id');
+    requestChange(scheduleId, employeeId);
+}
+
+// Оригінальні функції
 function editSchedule(scheduleId, date, shiftId, isDayOff) {
     $('#editForm').attr('action', '/schedule/update/' + scheduleId);
     $('#shiftSelect').val(shiftId);

@@ -37,7 +37,7 @@ public class SalaryService {
 
     public List<SalaryDetailDto> calculateSalaries(LocalDate startDate, LocalDate endDate) {
         List<Employees> employees = employeeRepository.findAll().stream()
-                .filter(e -> e.getRole().getId() == 3L || e.getRole().getId() == 4L)
+                .filter(e -> e.getRole().getId() == 2L || e.getRole().getId() == 3L)
                 .toList();
 
         List<SalaryDetailDto> salaries = new ArrayList<>();

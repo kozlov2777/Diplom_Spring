@@ -1,76 +1,443 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Статуси замовлень</title>
+    <title>Замовлення</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .nav-tabs {
+            border-bottom: 2px solid #667eea;
+            margin-bottom: 25px;
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            color: #666;
+            font-weight: 600;
+            font-size: 16px;
+            padding: 12px 25px;
+            transition: all 0.3s;
+        }
+        .nav-tabs .nav-link:hover {
+            border: none;
+            color: #667eea;
+        }
+        .nav-tabs .nav-link.active {
+            border: none;
+            border-bottom: 3px solid #667eea;
+            color: #667eea;
+            background: transparent;
+        }
+        .create-order-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+            border: none;
+        }
+        .create-order-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+            color: white;
+        }
+        .all-orders-card {
+            border-left: 5px solid #667eea;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .all-orders-card:hover {
+            border-left-color: #764ba2;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+        .order-id-large {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .order-total-large {
+            font-size: 22px;
+            font-weight: bold;
+            color: #43e97b;
+        }
+        .order-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .order-card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .order-info {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .dish-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .dish-item:last-child {
+            border-bottom: none;
+        }
+        .dish-name {
+            font-weight: 500;
+            color: #333;
+        }
+        .dish-quantity {
+            color: #667eea;
+            font-weight: 600;
+        }
+        .total-price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2ecc71;
+            margin: 10px 0;
+        }
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-cooking {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        .btn-action {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        .btn-mark-ready {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+        }
+        .btn-mark-ready:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(46, 204, 113, 0.4);
+        }
+        .btn-complete {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+        .btn-complete:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+        .column-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .title-cooking {
+            background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+            color: #2d3436;
+        }
+        .title-ready {
+            background: linear-gradient(135deg, #55efc4 0%, #00b894 100%);
+            color: white;
+        }
+        .table-badge {
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .order-id {
+            color: #999;
+            font-size: 14px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="~{navbar}"></div>
-<div class="container">
-    <div class="row">
-        <div class="col-md-8">
-            <h2 style="clear: both;">Готується</h2>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>ІД</th>
-                    <th>Номер столика</th>
-                    <th>Блюдо</th>
-                    <th>Кількість</th>
-                    <th>Дата створення</th>
-                    <th>Сума</th>
-                    <th>Статус</th>
-                    <th>Робітник</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="order : ${orderStatus1}">
-                    <td><a th:href="@{'order_detail/' + ${order.id}}" th:text ="${order.id}"></a></td>
-                    <td><a th:href="@{'order_detail_by_table_number/' + ${order.tableNumber}}" th:text="${order.tableNumber}"></a></td>
-                    <td th:text="${order.name}"></td>
-                    <td th:text="${order.quantity}"></td>
-                    <td th:text="${order.createdAt}"></td>
-                    <td th:text="${order.total}"></td>
-                    <td><a th:href="@{'update_order_status/' + ${order.id}}"><span th:text="${order.status}"></span></a></td>
-                    <td th:text="${order.employeeFirstName}"></td>
-                </tr>
-                </tbody>
-            </table>
+
+<!-- Плаваюча кнопка створення замовлення -->
+<a href="/new_order" class="create-order-btn">
+    ➕ Нове замовлення
+</a>
+
+<div class="container-fluid" style="padding: 30px;">
+    <!-- Вкладки -->
+    <ul class="nav nav-tabs" id="orderTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="active-tab" data-toggle="tab" href="#active" role="tab">
+                🔥 Активні замовлення
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="all-tab" data-toggle="tab" href="#all" role="tab">
+                📋 Всі замовлення
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="orderTabsContent">
+        <!-- Вкладка активних замовлень -->
+        <div class="tab-pane fade show active" id="active" role="tabpanel">
+            <div class="row">
+        <!-- Колонка "Готується" -->
+        <div class="col-md-6">
+            <div class="column-title title-cooking">
+                👨‍🍳 Готується
+            </div>
+            
+            <div th:if="${#lists.isEmpty(orderStatus1)}" class="empty-state">
+                📭 Немає замовлень у готуванні
+            </div>
+            
+            <div id="cookingOrders"></div>
         </div>
-        <div class="col-md-8">
-            <h2 style="clear: both;">Готово</h2>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>ІД</th>
-                    <th>Номер столика</th>
-                    <th>Блюдо</th>
-                    <th>Кількість</th>
-                    <th>Дата створення</th>
-                    <th>Сума</th>
-                    <th>Статус</th>
-                    <th>Робітник</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="order : ${orderStatus2}">
-                    <td><a th:href="@{'order_detail/' + ${order.id}}" th:text ="${order.id}"></a></td>
-                    <td><a th:href="@{'order_detail_by_table_number/' + ${order.tableNumber}}" th:text="${order.tableNumber}"></a></td>
-                    <td th:text="${order.name}"></td>
-                    <td th:text="${order.quantity}"></td>
-                    <td th:text="${order.createdAt}"></td>
-                    <td th:text="${order.total}"></td>
-                    <td><a th:href="@{'update_order_status_and_table/' + ${order.id}}"><span th:text="${order.status}"></span></a></td>
-                    <td th:text="${order.employeeFirstName}"></td>
-                </tr>
-                </tbody>
-            </table>
+        
+        <!-- Колонка "Готово" -->
+        <div class="col-md-6">
+            <div class="column-title title-ready">
+                ✨ Готово до видачі
+            </div>
+            
+            <div th:if="${#lists.isEmpty(orderStatus2)}" class="empty-state">
+                📭 Немає готових замовлень
+            </div>
+            
+            <div id="readyOrders"></div>
+            </div>
+            </div>
+        </div>
+
+        <!-- Вкладка всіх замовлень -->
+        <div class="tab-pane fade" id="all" role="tabpanel">
+            <div style="margin: 20px 0;">
+                <input type="text" id="searchOrder" class="form-control" placeholder="🔍 Пошук за номером столика або ID..." style="max-width: 500px;">
+            </div>
+
+            <div class="row" id="ordersList">
+                <div class="col-md-6 col-lg-4 mb-4" th:each="o : ${orderList}">
+                    <div class="card all-orders-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <span class="text-muted">Замовлення</span>
+                                    <div class="order-id-large">#<span th:text="${o.id}"></span></div>
+                                </div>
+                                <span class="badge badge-info">Столик <span th:text="${o.tableNumber}"></span></span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted">📅 Дата створення</small>
+                                <div th:text="${#temporals.format(o.createdAt, 'dd.MM.yyyy HH:mm')}"></div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted">Сума</small>
+                                    <div class="order-total-large"><span th:text="${o.total}"></span> грн</div>
+                                </div>
+                                <a th:href="@{'order_detail/' + ${o.id}}" class="btn btn-primary">
+                                    Деталі →
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="noResults" style="display:none;" class="text-center py-5">
+                <h4 class="text-muted">Замовлення не знайдено</h4>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Hidden data for JavaScript -->
+<div style="display: none;">
+    <div th:each="order : ${orderStatus1}" 
+         class="order-data-1"
+         th:data-id="${order.id}"
+         th:data-table="${order.tableNumber}"
+         th:data-employee="${order.employeeFirstName}"
+         th:data-name="${order.name}"
+         th:data-quantity="${order.quantity}"
+         th:data-total="${order.total}"
+         th:data-date="${order.createdAt}"></div>
+    
+    <div th:each="order : ${orderStatus2}" 
+         class="order-data-2"
+         th:data-id="${order.id}"
+         th:data-table="${order.tableNumber}"
+         th:data-employee="${order.employeeFirstName}"
+         th:data-name="${order.name}"
+         th:data-quantity="${order.quantity}"
+         th:data-total="${order.total}"
+         th:data-date="${order.createdAt}"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script th:inline="javascript">
+// Функція для групування замовлень
+function groupOrders(dataClass, containerId, statusBadge, statusClass, buttonText, buttonAction, buttonClass) {
+    const orders = {};
+    
+    $(dataClass).each(function() {
+        const id = $(this).data('id');
+        const table = $(this).data('table');
+        const employee = $(this).data('employee');
+        const name = $(this).data('name');
+        const quantity = $(this).data('quantity');
+        const total = parseFloat($(this).data('total'));
+        const date = $(this).data('date');
+        
+        if (!orders[id]) {
+            orders[id] = {
+                id: id,
+                table: table,
+                employee: employee,
+                date: date,
+                dishes: [],
+                totalSum: 0
+            };
+        }
+        
+        orders[id].dishes.push({ name: name, quantity: quantity });
+        orders[id].totalSum += total;
+    });
+    
+    // Відображення згрупованих замовлень
+    let html = '';
+    for (let orderId in orders) {
+        const order = orders[orderId];
+        const dateFormatted = new Date(order.date).toLocaleString('uk-UA', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        html += `
+            <div class="order-card">
+                <div class="order-header">
+                    <div>
+                        <span class="order-id">Замовлення #${order.id}</span>
+                        <span class="table-badge ml-2">🪑 Столик ${order.table}</span>
+                    </div>
+                    <span class="status-badge ${statusClass}">${statusBadge}</span>
+                </div>
+                
+                <div class="order-info">
+                    <strong>Офіціант:</strong> ${order.employee}
+                </div>
+        `;
+        
+        // Додаємо всі страви
+        order.dishes.forEach(dish => {
+            html += `
+                <div class="dish-item">
+                    <span class="dish-name">${dish.name}</span>
+                    <span class="dish-quantity ml-2">× ${dish.quantity}</span>
+                </div>
+            `;
+        });
+        
+        html += `
+                <div class="total-price">
+                    💰 ${order.totalSum.toFixed(2)} грн
+                </div>
+                
+                <div class="order-info" style="font-size: 12px;">
+                    🕐 ${dateFormatted}
+                </div>
+                
+                <a href="${buttonAction}${order.id}" class="btn btn-action ${buttonClass}">
+                    ${buttonText}
+                </a>
+            </div>
+        `;
+    }
+    
+    $(containerId).html(html);
+}
+
+// Групуємо замовлення при завантаженні
+$(document).ready(function() {
+    // Готуються
+    groupOrders(
+        '.order-data-1',
+        '#cookingOrders',
+        'Готується',
+        'status-cooking',
+        '✅ Позначити готовим',
+        '/update_order_status/',
+        'btn-mark-ready'
+    );
+    
+    // Готові
+    groupOrders(
+        '.order-data-2',
+        '#readyOrders',
+        'Готово',
+        'status-ready',
+        '🍽️ Видати клієнту',
+        '/update_order_status_and_table/',
+        'btn-complete'
+    );
+});
+
+// Пошук замовлень
+$('#searchOrder').on('input', function() {
+    const search = $(this).val().toLowerCase();
+    let hasResults = false;
+    
+    $('#ordersList .col-md-6').each(function() {
+        const text = $(this).text().toLowerCase();
+        const visible = text.includes(search);
+        $(this).toggle(visible);
+        if (visible) hasResults = true;
+    });
+    
+    $('#noResults').toggle(!hasResults);
+});
+</script>
 </body>
 </html>
 

@@ -48,7 +48,7 @@
                             <label class="col-sm-4 col-form-label">Ставка за годину (грн):</label>
                             <div class="col-sm-8">
                                 <input type="number" step="0.01" name="hourlyRate" 
-                                       th:value="${settings.stream().filter(s -> s.roleId == 3).findFirst().map(s -> s.hourlyRate).orElse(100.0)}"
+                                       th:value="${waiterSettings.hourlyRate}"
                                        class="form-control" min="50" max="500" required>
                                 <small class="info-text">Базова ставка за 1 годину роботи</small>
                             </div>
@@ -58,7 +58,7 @@
                             <label class="col-sm-4 col-form-label">Бонус за замовлення (грн):</label>
                             <div class="col-sm-8">
                                 <input type="number" step="0.01" name="orderBonus" 
-                                       th:value="${settings.stream().filter(s -> s.roleId == 3).findFirst().map(s -> s.orderBonus).orElse(10.0)}"
+                                       th:value="${waiterSettings.orderBonus}"
                                        class="form-control" min="0" max="100" required>
                                 <small class="info-text">Додатковий бонус за кожне обслужене замовлення</small>
                             </div>
@@ -68,7 +68,7 @@
                             <label class="col-sm-4 col-form-label">Коефіцієнт премії за відгук (грн):</label>
                             <div class="col-sm-8">
                                 <input type="number" step="0.01" name="reviewBonus" 
-                                       th:value="${settings.stream().filter(s -> s.roleId == 3).findFirst().map(s -> s.reviewBonusCoefficient).orElse(20.0)}"
+                                       th:value="${waiterSettings.reviewBonusCoefficient}"
                                        class="form-control" min="0" max="100" required>
                                 <small class="info-text">Множиться на середню оцінку та кількість відгуків</small>
                             </div>
@@ -78,7 +78,7 @@
                             <label class="col-sm-4 col-form-label">Штраф за прогул (грн):</label>
                             <div class="col-sm-8">
                                 <input type="number" step="0.01" name="absencePenalty" 
-                                       th:value="${settings.stream().filter(s -> s.roleId == 3).findFirst().map(s -> s.absencePenalty).orElse(200.0)}"
+                                       th:value="${waiterSettings.absencePenalty}"
                                        class="form-control" min="0" max="1000" required>
                                 <small class="info-text">Вираховується за кожен пропущений робочий день</small>
                             </div>
@@ -102,7 +102,7 @@
                             <label class="col-sm-4 col-form-label">Ставка за годину (грн):</label>
                             <div class="col-sm-8">
                                 <input type="number" step="0.01" name="hourlyRate" 
-                                       th:value="${settings.stream().filter(s -> s.roleId == 4).findFirst().map(s -> s.hourlyRate).orElse(120.0)}"
+                                       th:value="${cookSettings.hourlyRate}"
                                        class="form-control" min="50" max="500" required>
                                 <small class="info-text">Базова ставка за 1 годину роботи</small>
                             </div>
@@ -112,7 +112,7 @@
                             <label class="col-sm-4 col-form-label">Бонус за замовлення (грн):</label>
                             <div class="col-sm-8">
                                 <input type="number" step="0.01" name="orderBonus" 
-                                       th:value="${settings.stream().filter(s -> s.roleId == 4).findFirst().map(s -> s.orderBonus).orElse(15.0)}"
+                                       th:value="${cookSettings.orderBonus}"
                                        class="form-control" min="0" max="100" required>
                                 <small class="info-text">Додатковий бонус за кожне приготоване замовлення</small>
                             </div>
@@ -122,7 +122,7 @@
                             <label class="col-sm-4 col-form-label">Коефіцієнт премії за відгук (грн):</label>
                             <div class="col-sm-8">
                                 <input type="number" step="0.01" name="reviewBonus" 
-                                       th:value="${settings.stream().filter(s -> s.roleId == 4).findFirst().map(s -> s.reviewBonusCoefficient).orElse(25.0)}"
+                                       th:value="${cookSettings.reviewBonusCoefficient}"
                                        class="form-control" min="0" max="100" required>
                                 <small class="info-text">Множиться на середню оцінку та кількість відгуків</small>
                             </div>
@@ -132,7 +132,7 @@
                             <label class="col-sm-4 col-form-label">Штраф за прогул (грн):</label>
                             <div class="col-sm-8">
                                 <input type="number" step="0.01" name="absencePenalty" 
-                                       th:value="${settings.stream().filter(s -> s.roleId == 4).findFirst().map(s -> s.absencePenalty).orElse(250.0)}"
+                                       th:value="${cookSettings.absencePenalty}"
                                        class="form-control" min="0" max="1000" required>
                                 <small class="info-text">Вираховується за кожен пропущений робочий день</small>
                             </div>

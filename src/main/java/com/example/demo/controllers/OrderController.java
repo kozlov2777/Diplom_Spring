@@ -35,13 +35,6 @@ public class OrderController {
         this.orderItemRepository = orderItemRepository;
     }
 
-    @GetMapping("/orders_view")
-    public String viewOrders(Model model) {
-        List<OrderDto> orderList = orderService.getOrders();
-        model.addAttribute("orderList", orderList);
-        return "order_list";
-    }
-
     @GetMapping("/order_detail/{order_id}")
     public String viewOrderDetail(@PathVariable("order_id") Long orderId, Model model) {
         List<OrderDetailDto> orderDetailList = orderService.getOrderById(orderId);
@@ -59,11 +52,16 @@ public class OrderController {
 
     @GetMapping("/")
     public String getOrdersByStatus(Model model) {
+        // Активні замовлення (готуються і готові)
         List<OrderByStatusDto> orderStatus1 = orderService.getOrdersByStatus(1L);
         List<OrderByStatusDto> orderStatus2 = orderService.getOrdersByStatus(2L);
+        
+        // Всі замовлення для історії
+        List<OrderDto> orderList = orderService.getOrders();
 
         model.addAttribute("orderStatus1", orderStatus1);
         model.addAttribute("orderStatus2", orderStatus2);
+        model.addAttribute("orderList", orderList);
 
         return "order_by_status";
     }

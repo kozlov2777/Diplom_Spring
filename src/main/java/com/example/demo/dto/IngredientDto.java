@@ -11,6 +11,6 @@ public class IngredientDto {
     private Double quantity;
     private String unit;
     private Double minQuantity;
-    private Boolean isLowStock;
+    private boolean isLowStock;
 }
 

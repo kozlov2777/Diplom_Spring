@@ -15,11 +15,9 @@
 <div class="container mt-4">
     <h2>📦 Управління інвентарем</h2>
     
-    <div class="alert alert-danger" th:if="${ingredients.stream().filter(i -> i.isLowStock).count() > 0}">
-        <strong>⚠️ Увага!</strong> <span th:text="${ingredients.stream().filter(i -> i.isLowStock).count()} + ' продуктів з низьким запасом!'"></span>
+    <div class="alert alert-danger" th:if="${lowStockCount > 0}">
+        <strong>⚠️ Увага!</strong> <span th:text="${lowStockCount} + ' продуктів з низьким запасом!'"></span>
     </div>
-    
-    <a href="/inventory/purchases" class="btn btn-primary mb-3">📋 Історія закупівель</a>
     
     <table class="table table-bordered">
         <thead>
@@ -43,8 +41,12 @@
                     <span th:if="${!ing.isLowStock}" class="badge badge-success">OK</span>
                 </td>
                 <td>
-                    <button class="btn btn-sm btn-warning" th:onclick="'editIngredient(' + ${ing.id} + ', \'' + ${ing.name} + '\', ' + ${ing.quantity} + ', ' + ${ing.minQuantity} + ')'">Редагувати</button>
-                    <button class="btn btn-sm btn-primary" th:onclick="'addPurchase(' + ${ing.id} + ', \'' + ${ing.name} + '\', \'' + ${ing.unit} + '\')'">Закупити</button>
+                    <button class="btn btn-sm btn-warning" 
+                            th:data-id="${ing.id}" 
+                            th:data-name="${ing.name}" 
+                            th:data-quantity="${ing.quantity}" 
+                            th:data-min-quantity="${ing.minQuantity}"
+                            onclick="editIngredientFromData(this)">Редагувати</button>
                 </td>
             </tr>
         </tbody>
@@ -80,53 +82,25 @@
     </div>
 </div>
 
-<!-- Модальне вікно закупівлі -->
-<div class="modal fade" id="purchaseModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="/inventory/purchase" method="post">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="purchaseTitle"></h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="ingredientId" id="purchaseId">
-                    <input type="hidden" name="employeeId" value="1">
-                    <div class="form-group">
-                        <label>Кількість:</label>
-                        <input type="number" step="0.01" name="quantity" class="form-control" required>
-                        <small id="purchaseUnit"></small>
-                    </div>
-                    <div class="form-group">
-                        <label>Ціна (грн):</label>
-                        <input type="number" step="0.01" name="price" class="form-control" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Додати закупівлю</button>
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
+// Обгортки для читання даних з data-атрибутів
+function editIngredientFromData(button) {
+    const id = button.getAttribute('data-id');
+    const name = button.getAttribute('data-name');
+    const quantity = button.getAttribute('data-quantity');
+    const minQuantity = button.getAttribute('data-min-quantity');
+    editIngredient(id, name, quantity, minQuantity);
+}
+
+// Оригінальна функція
 function editIngredient(id, name, quantity, minQuantity) {
     $('#editTitle').text('Редагувати: ' + name);
     $('#editId').val(id);
     $('#editQuantity').val(quantity);
     $('#editMinQuantity').val(minQuantity);
     $('#editModal').modal('show');
-}
-
-function addPurchase(id, name, unit) {
-    $('#purchaseTitle').text('Закупівля: ' + name);
-    $('#purchaseId').val(id);
-    $('#purchaseUnit').text('Одиниця: ' + unit);
-    $('#purchaseModal').modal('show');
 }
 </script>
 </body>

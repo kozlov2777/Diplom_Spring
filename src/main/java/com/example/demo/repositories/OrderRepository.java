@@ -17,7 +17,7 @@ import java.util.List;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Orders, Long> {
-    @Query("select new com.example.demo.dto.OrderDto(o.id, o.table.id, o.createdAt, sum(oi.quantity*m.price)) from Orders o join Order_Items oi on o.id = oi.order.id join Menu_Items m on oi.item.id=m.id group by o.id order by o.createdAt desc ")
+    @Query("select new com.example.demo.dto.OrderDto(o.id, o.table.id, o.createdAt, sum(oi.quantity*m.price)) from Orders o join Order_Items oi on o.id = oi.order.id join Menu_Items m on oi.item.id=m.id group by o.id, o.table.id, o.createdAt order by o.createdAt desc ")
     List<OrderDto> getOrders();
 
     @Query("SELECT new com.example.demo.dto.OrderDetailDto(oi.id, m.name, oi.quantity, m.price, o.createdAt, e.lastName, o.table.id, s.name) " +
@@ -35,7 +35,7 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
             "JOIN Menu_Items m ON oi.item.id = m.id " +
             "JOIN Tables t ON t.id = o.table.id " +
             "WHERE t.id = :tableNumber " +
-            "GROUP BY o.id, m.id " +
+            "GROUP BY o.id, m.id, m.name, oi.quantity, o.createdAt " +
             "ORDER BY o.createdAt DESC")
     List<OrderDetailByTableDto> getOrderDetailsByTableNumber(Long tableNumber);
 
@@ -46,7 +46,7 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
             "JOIN Employees e ON o.employee.id = e.id " +
             "JOIN Statuses s ON o.status.id = s.id " +
             "WHERE o.status.id = :statusId " +
-            "GROUP BY o.id, m.id " +
+            "GROUP BY o.id, o.table.id, m.id, m.name, oi.quantity, o.createdAt, s.name, e.firstName " +
             "ORDER BY o.createdAt DESC")
     List<OrderByStatusDto> getOrdersByStatus(Long statusId);
 
@@ -63,7 +63,7 @@ public interface OrderRepository extends JpaRepository<Orders, Long> {
     void updateTableStatus(Long table_status_id, Long orderId);
 
 
-    @Query("SELECT new com.example.demo.dto.OrderDto(o.id, o.table.id, o.createdAt, sum(oi.quantity*m.price)) from Orders o join Order_Items oi on o.id = oi.order.id join Menu_Items m on oi.item.id=m.id where o.createdAt between :startDate and :endDate group by o.id order by o.createdAt desc ")
+    @Query("SELECT new com.example.demo.dto.OrderDto(o.id, o.table.id, o.createdAt, sum(oi.quantity*m.price)) from Orders o join Order_Items oi on o.id = oi.order.id join Menu_Items m on oi.item.id=m.id where o.createdAt between :startDate and :endDate group by o.id, o.table.id, o.createdAt order by o.createdAt desc ")
     List<OrderDto> getOrdersByDate(LocalDateTime startDate, LocalDateTime endDate);
 
 

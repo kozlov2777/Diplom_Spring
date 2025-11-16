@@ -29,9 +29,11 @@ public class AnalyticsController {
         
         Map<String, Double> dailyRevenue = analyticsService.getDailyRevenue(start, end);
         Double averageCheck = analyticsService.getAverageCheck(start.atStartOfDay(), end.atTime(23, 59, 59));
+        Double totalRevenue = dailyRevenue.values().stream().mapToDouble(d -> d).sum();
         
         model.addAttribute("dailyRevenue", dailyRevenue);
         model.addAttribute("averageCheck", averageCheck);
+        model.addAttribute("totalRevenue", totalRevenue);
         model.addAttribute("startDate", start);
         model.addAttribute("endDate", end);
         

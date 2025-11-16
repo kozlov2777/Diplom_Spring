@@ -1,6 +1,7 @@
 package com.example.demo.controllers;
 
 import com.example.demo.dto.*;
+import com.example.demo.services.CategoryService;
 import com.example.demo.services.EmployeeService;
 import com.example.demo.services.MenuItemService;
 import com.example.demo.services.TableService;
@@ -17,18 +18,26 @@ public class MenuItemController {
     private final MenuItemService menuItemService;
     private final TableService tableService;
     private final EmployeeService employeeService;
+    private final CategoryService categoryService;
 
     @Autowired
-    public MenuItemController(MenuItemService menuItemService, TableService tableService, EmployeeService employeeService) {
+    public MenuItemController(MenuItemService menuItemService, TableService tableService, EmployeeService employeeService, CategoryService categoryService) {
         this.menuItemService = menuItemService;
         this.tableService = tableService;
         this.employeeService = employeeService;
+        this.categoryService = categoryService;
     }
 
     @GetMapping("/menu")
     public String getMenuItems(Model model) {
+        // Дані для меню (таблиця)
         List<MenuItemDto> menuItems = menuItemService.getMenuItems();
         model.addAttribute("menu", menuItems);
+        
+        // Дані для категорій (згруповані)
+        List<CategoryDto> category = categoryService.getCategories();
+        model.addAttribute("category", category);
+        
         return "menu";
     }
 

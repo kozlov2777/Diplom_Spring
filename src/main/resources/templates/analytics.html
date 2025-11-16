@@ -53,7 +53,7 @@
         <div class="col-md-6">
             <div class="metric-card">
                 <div>Загальна виручка</div>
-                <div class="metric-value" th:text="${#numbers.formatDecimal(dailyRevenue.values().stream().mapToDouble(d -> d).sum(), 0, 'COMMA', 0, 'POINT')} + ' грн'"></div>
+                <div class="metric-value" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' грн'"></div>
             </div>
         </div>
     </div>
@@ -71,21 +71,20 @@
     </div>
 </div>
 
-<script>
+<script th:inline="javascript">
+const revenueData = /*[[${dailyRevenue}]]*/ {};
+
+const labels = Object.keys(revenueData);
+const values = Object.values(revenueData);
+
 const ctx = document.getElementById('revenueChart').getContext('2d');
 new Chart(ctx, {
     type: 'line',
     data: {
-        labels: [/*[# th:each="entry, iterStat : ${dailyRevenue}" ]*/
-            /*[# th:text="${iterStat.index > 0 ? ',' : ''}" ]*//*[/]*/
-            /*[[${entry.key}]]*/
-        /*[/]*/],
+        labels: labels,
         datasets: [{
             label: 'Виручка (грн)',
-            data: [/*[# th:each="entry, iterStat : ${dailyRevenue}" ]*/
-                /*[# th:text="${iterStat.index > 0 ? ',' : ''}" ]*//*[/]*/
-                /*[[${entry.value}]]*/
-            /*[/]*/],
+            data: values,
             borderColor: 'rgb(102, 126, 234)',
             backgroundColor: 'rgba(102, 126, 234, 0.1)',
             tension: 0.4,

@@ -5,9 +5,9 @@
 INSERT INTO salary_settings (role_id, hourly_rate, order_bonus, review_bonus_coefficient, absence_penalty) 
 VALUES (3, 100.0, 10.0, 20.0, 200.0);
 
--- Налаштування для Кухарів (role_id = 4)
+-- Налаштування для Кухарів (role_id = 2)
 INSERT INTO salary_settings (role_id, hourly_rate, order_bonus, review_bonus_coefficient, absence_penalty) 
-VALUES (4, 120.0, 15.0, 25.0, 250.0);
+VALUES (2, 120.0, 15.0, 25.0, 250.0);
 
 -- Пояснення:
 -- hourly_rate - ставка за годину роботи (грн)

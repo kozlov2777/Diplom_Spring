@@ -40,7 +40,7 @@ public class ScheduleService {
         workScheduleRepository.deleteByDateRange(startDate, endDate);
 
         List<Employees> waiters = employeeRepository.findAll().stream()
-                .filter(e -> e.getRole().getId() == 3L || e.getRole().getId() == 4L)
+                .filter(e -> e.getRole().getId() == 2L || e.getRole().getId() == 3L)
                 .toList();
 
         List<Shift> shifts = shiftRepository.findAll();
@@ -87,7 +87,7 @@ public class ScheduleService {
 
                 // Вибираємо кухарів
                 List<Employees> availableCooks = waiters.stream()
-                        .filter(e -> e.getRole().getId() == 4L)
+                        .filter(e -> e.getRole().getId() == 2L)
                         .sorted(Comparator.comparingInt(e -> employeeShiftCount.get(e.getId())))
                         .toList();
 

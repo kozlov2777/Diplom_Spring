@@ -79,9 +79,9 @@
                 <small>Сьогодні</small><br>
                 <small th:text="'Тиждень: ' + ${#numbers.formatDecimal(dashboard.weekRevenue, 0, 'COMMA', 0, 'POINT')} + ' грн'"></small><br>
                 <small th:text="'Місяць: ' + ${#numbers.formatDecimal(dashboard.monthRevenue, 0, 'COMMA', 0, 'POINT')} + ' грн'"></small>
-                <div th:if="${dashboard.revenueChange != 0}">
+                <div th:if="${dashboard.revenueChange != null && dashboard.revenueChange != 0}">
                     <span th:classappend="${dashboard.revenueChange >= 0 ? 'trend-up' : 'trend-down'}">
-                        <strong th:text="${dashboard.revenueChange >= 0 ? '▲' : '▼'} + ' ' + ${#numbers.formatDecimal(Math.abs(dashboard.revenueChange), 0, 2)} + '%'"></strong>
+                        <strong th:text="${dashboard.revenueChange >= 0 ? '▲' : '▼'} + ' ' + ${#numbers.formatDecimal(dashboard.revenueChange >= 0 ? dashboard.revenueChange : -dashboard.revenueChange, 0, 2)} + '%'"></strong>
                     </span>
                     <small> від минулого тижня</small>
                 </div>
@@ -103,9 +103,9 @@
         <div class="col-md-3">
             <div class="stat-card rating-card">
                 <div class="stat-label">⭐ Рейтинг</div>
-                <div class="stat-value" th:text="${#numbers.formatDecimal(dashboard.todayAverageRating, 0, 1)} + '/5'"></div>
-                <small th:text="'Відгуків сьогодні: ' + ${dashboard.todayReviewsCount}"></small><br>
-                <small th:text="'Середній за тиждень: ' + ${#numbers.formatDecimal(dashboard.weekAverageRating, 0, 1)}"></small>
+                <div class="stat-value" th:text="${dashboard.todayAverageRating != null && dashboard.todayAverageRating > 0 ? #numbers.formatDecimal(dashboard.todayAverageRating, 0, 1) + '/5' : '—'}"></div>
+                <small th:text="'Відгуків сьогодні: ' + ${dashboard.todayReviewsCount != null ? dashboard.todayReviewsCount : 0}"></small><br>
+                <small th:text="'Середній за тиждень: ' + ${dashboard.weekAverageRating != null && dashboard.weekAverageRating > 0 ? #numbers.formatDecimal(dashboard.weekAverageRating, 0, 1) : '—'}"></small>
             </div>
         </div>
         
@@ -113,7 +113,7 @@
         <div class="col-md-3">
             <div class="stat-card employees-card">
                 <div class="stat-label">👥 На зміні</div>
-                <div class="stat-value" th:text="${dashboard.currentShift.size()}"></div>
+                <div class="stat-value" th:text="${dashboard.currentShift != null ? dashboard.currentShift.size() : 0}"></div>
                 <small>працівників зараз</small>
             </div>
         </div>
@@ -159,12 +159,14 @@
                     <h5>👥 Хто зараз працює</h5>
                 </div>
                 <div class="card-body">
-                    <div th:if="${#lists.isEmpty(dashboard.currentShift)}" class="text-muted">
+                    <div th:if="${dashboard.currentShift == null || #lists.isEmpty(dashboard.currentShift)}" class="text-muted">
                         Немає працівників на зміні (можливо графік не згенерований)
                     </div>
-                    <div th:each="emp : ${dashboard.currentShift}" class="employee-card">
-                        <strong th:text="${emp.firstName + ' ' + emp.lastName}"></strong>
-                        <span class="badge badge-primary ml-2" th:text="${emp.shiftName}"></span>
+                    <div th:if="${dashboard.currentShift != null}">
+                        <div th:each="emp : ${dashboard.currentShift}" class="employee-card">
+                            <strong th:text="${emp.firstName + ' ' + emp.lastName}"></strong>
+                            <span class="badge badge-primary ml-2" th:text="${emp.shiftName}"></span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -192,49 +194,22 @@
             </div>
         </div>
     </div>
-    
-    <!-- Швидкі посилання -->
-    <div class="row mt-4 mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>🔗 Швидкі дії</h5>
-                </div>
-                <div class="card-body">
-                    <a href="/new_order" class="btn btn-success mr-2">➕ Нове замовлення</a>
-                    <a href="/schedule" class="btn btn-info mr-2">📅 Графік роботи</a>
-                    <a href="/salary" class="btn btn-warning mr-2">💰 Зарплата</a>
-                    <a href="/reviews" class="btn btn-primary mr-2">⭐ Відгуки</a>
-                    <a href="/orders_view" class="btn btn-secondary mr-2">📋 Всі замовлення</a>
-                    <a href="/analytics" class="btn btn-danger mr-2">📊 Аналітика</a>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
-<script>
+<script th:inline="javascript">
 // Графік виручки
-const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-const revenueData = {
-    /*[# th:each="entry : ${dashboard.weeklyRevenueChart}" ]*/
-    /*[# th:text="${entry.key}" ]*/'Пн'/*[/]*/: /*[# th:text="${entry.value}" ]*/0/*[/]*/,
-    /*[/]*/
-};
+const revenueData = /*[[${dashboard.weeklyRevenueChart}]]*/ {};
+const revenueLabels = Object.keys(revenueData);
+const revenueValues = Object.values(revenueData);
 
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
 new Chart(revenueCtx, {
     type: 'line',
     data: {
-        labels: [/*[# th:each="entry, iterStat : ${dashboard.weeklyRevenueChart}" ]*/
-            /*[# th:text="${iterStat.index > 0 ? ',' : ''}" ]*//*[/]*/
-            /*[[${entry.key}]]*/
-        /*[/]*/],
+        labels: revenueLabels,
         datasets: [{
             label: 'Виручка (грн)',
-            data: [/*[# th:each="entry, iterStat : ${dashboard.weeklyRevenueChart}" ]*/
-                /*[# th:text="${iterStat.index > 0 ? ',' : ''}" ]*//*[/]*/
-                /*[[${entry.value}]]*/
-            /*[/]*/],
+            data: revenueValues,
             borderColor: 'rgb(102, 126, 234)',
             backgroundColor: 'rgba(102, 126, 234, 0.1)',
             tension: 0.4,
@@ -251,20 +226,18 @@ new Chart(revenueCtx, {
 });
 
 // Графік замовлень
+const ordersData = /*[[${dashboard.hourlyOrdersChart}]]*/ {};
+const ordersLabels = Object.keys(ordersData);
+const ordersValues = Object.values(ordersData);
+
 const ordersCtx = document.getElementById('ordersChart').getContext('2d');
 new Chart(ordersCtx, {
     type: 'bar',
     data: {
-        labels: [/*[# th:each="entry, iterStat : ${dashboard.hourlyOrdersChart}" ]*/
-            /*[# th:text="${iterStat.index > 0 ? ',' : ''}" ]*//*[/]*/
-            /*[[${entry.key}]]*/
-        /*[/]*/],
+        labels: ordersLabels,
         datasets: [{
             label: 'Замовлень',
-            data: [/*[# th:each="entry, iterStat : ${dashboard.hourlyOrdersChart}" ]*/
-                /*[# th:text="${iterStat.index > 0 ? ',' : ''}" ]*//*[/]*/
-                /*[[${entry.value}]]*/
-            /*[/]*/],
+            data: ordersValues,
             backgroundColor: 'rgba(245, 87, 108, 0.8)',
             borderColor: 'rgb(245, 87, 108)',
             borderWidth: 1

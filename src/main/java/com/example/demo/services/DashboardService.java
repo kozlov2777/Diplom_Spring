@@ -42,16 +42,20 @@ public class DashboardService {
         LocalDateTime monthStartTime = monthStart.atStartOfDay();
         
         // 1. Фінансові метрики
-        dashboard.setTodayRevenue(calculateRevenue(todayStart, todayEnd));
-        dashboard.setWeekRevenue(calculateRevenue(weekStartTime, todayEnd));
-        dashboard.setMonthRevenue(calculateRevenue(monthStartTime, todayEnd));
+        Double todayRev = calculateRevenue(todayStart, todayEnd);
+        Double weekRev = calculateRevenue(weekStartTime, todayEnd);
+        Double monthRev = calculateRevenue(monthStartTime, todayEnd);
+        
+        dashboard.setTodayRevenue(todayRev != null ? todayRev : 0.0);
+        dashboard.setWeekRevenue(weekRev != null ? weekRev : 0.0);
+        dashboard.setMonthRevenue(monthRev != null ? monthRev : 0.0);
         
         // Зміна відносно минулого тижня
         LocalDateTime prevWeekStart = weekStart.minusDays(7).atStartOfDay();
         LocalDateTime prevWeekEnd = weekStart.minusDays(1).atTime(23, 59, 59);
         Double prevWeekRevenue = calculateRevenue(prevWeekStart, prevWeekEnd);
-        if (prevWeekRevenue > 0) {
-            dashboard.setRevenueChange(((dashboard.getWeekRevenue() - prevWeekRevenue) / prevWeekRevenue) * 100);
+        if (prevWeekRevenue != null && prevWeekRevenue > 0 && weekRev != null) {
+            dashboard.setRevenueChange(((weekRev - prevWeekRevenue) / prevWeekRevenue) * 100);
         } else {
             dashboard.setRevenueChange(0.0);
         }
@@ -64,11 +68,11 @@ public class DashboardService {
         
         // 3. Відгуки
         Map<String, Object> todayReviews = getReviewStats(todayStart, todayEnd);
-        dashboard.setTodayAverageRating(todayReviews.get("avgRating") != null ? (Double) todayReviews.get("avgRating") : 0.0);
-        dashboard.setTodayReviewsCount(todayReviews.get("count") != null ? (Long) todayReviews.get("count") : 0L);
+        dashboard.setTodayAverageRating((Double) todayReviews.get("avgRating"));
+        dashboard.setTodayReviewsCount((Long) todayReviews.get("count"));
         
         Map<String, Object> weekReviews = getReviewStats(weekStartTime, todayEnd);
-        dashboard.setWeekAverageRating(weekReviews.get("avgRating") != null ? (Double) weekReviews.get("avgRating") : 0.0);
+        dashboard.setWeekAverageRating((Double) weekReviews.get("avgRating"));
         
         // 4. Поточна зміна
         dashboard.setCurrentShift(getCurrentShift());
@@ -123,12 +127,14 @@ public class DashboardService {
     }
 
     private Map<String, Object> getReviewStats(LocalDateTime start, LocalDateTime end) {
+        Map<String, Object> stats = new HashMap<>();
         try {
             List<ReviewDto> reviews = reviewRepository.getAllReviews().stream()
-                    .filter(r -> r.getCreatedAt().isAfter(start) && r.getCreatedAt().isBefore(end))
+                    .filter(r -> r.getCreatedAt() != null && 
+                                 r.getCreatedAt().isAfter(start) && 
+                                 r.getCreatedAt().isBefore(end))
                     .collect(Collectors.toList());
             
-            Map<String, Object> stats = new HashMap<>();
             if (!reviews.isEmpty()) {
                 double avgRating = reviews.stream()
                         .mapToInt(ReviewDto::getRating)
@@ -137,16 +143,14 @@ public class DashboardService {
                 stats.put("avgRating", Math.round(avgRating * 10.0) / 10.0);
                 stats.put("count", (long) reviews.size());
             } else {
-                stats.put("avgRating", 0.0);
+                stats.put("avgRating", null);
                 stats.put("count", 0L);
             }
-            return stats;
         } catch (Exception e) {
-            Map<String, Object> stats = new HashMap<>();
-            stats.put("avgRating", 0.0);
+            stats.put("avgRating", null);
             stats.put("count", 0L);
-            return stats;
         }
+        return stats;
     }
 
     private List<EmployeeOnShiftDto> getCurrentShift() {
