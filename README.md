@@ -126,13 +126,6 @@ populate_database.sql   # Тестові дані
 setup_postgresql.sh     # Автоматичне налаштування
 ```
 
-## 📚 Документація
-
-- **[DATABASE_SETUP.md](DATABASE_SETUP.md)** - Детальна інструкція по налаштуванню БД
-- **[UI_IMPROVEMENTS.md](UI_IMPROVEMENTS.md)** - Опис покращень інтерфейсу
-- **[SALARY_SYSTEM.md](SALARY_SYSTEM.md)** - Система розрахунку зарплат
-- **[SCHEDULE_SETUP.md](SCHEDULE_SETUP.md)** - Система графіків роботи
-
 ## 🔧 Ручне налаштування
 
 Якщо автоматичний скрипт не спрацював:
@@ -317,7 +310,7 @@ java -jar target/demo2-0.0.1-SNAPSHOT.jar --server.port=8081
 
 ## 👨‍💻 Автор
 
-Розроблено як дипломний проект для системи управління рестораном.
+Розроблено як дипломний проект для системи управління командною взаємодію в ресторані.
 
 ## 🎉 Приємного користування!
 
@@ -334,9 +327,7 @@ mvn clean install             # Оновлення залежностей
 psql -U postgres -d diplom_master # Підключення до БД
 ```
 
-**URLs:**
+**URL:**
 - Вхід: http://localhost:8080/login
-- Замовлення: http://localhost:8080/order_list
-- Меню: http://localhost:8080/menu
-- Дашборд (admin): http://localhost:8080/dashboard
+
 
