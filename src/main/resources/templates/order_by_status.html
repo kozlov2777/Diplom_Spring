@@ -313,7 +313,48 @@
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 <script th:inline="javascript">
+let stompClient = null;
+
+function connectWebSocket() {
+    const socket = new SockJS(/*[[@{/ws-orders}]]*/ '/ws-orders');
+    stompClient = Stomp.over(socket);
+    stompClient.debug = null;
+
+    stompClient.connect({}, function () {
+        // Нові замовлення для кухарів
+        stompClient.subscribe('/topic/orders/new', function (message) {
+            const orderId = message.body;
+            showToast('Нове замовлення #' + orderId, '👨‍🍳 Для кухні');
+        });
+
+        // Готові замовлення для офіціантів
+        stompClient.subscribe('/topic/orders/ready', function (message) {
+            const orderId = message.body;
+            showToast('Замовлення #' + orderId + ' готове', '🧑‍🍳 Віднесіть клієнту');
+        });
+    });
+}
+
+function showToast(title, text) {
+    const toastId = 'toast-' + Date.now();
+    const toastHtml = `
+        <div id="${toastId}" class="toast" style="position: fixed; top: 20px; right: 20px; z-index: 2000;" data-delay="4000">
+            <div class="toast-header">
+                <strong class="mr-auto">${title}</strong>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">&times;</button>
+            </div>
+            <div class="toast-body">
+                ${text}
+            </div>
+        </div>`;
+    $('body').append(toastHtml);
+    $('#' + toastId).toast('show').on('hidden.bs.toast', function () {
+        $(this).remove();
+    });
+}
 // Функція для групування замовлень
 function groupOrders(dataClass, containerId, statusBadge, statusClass, buttonText, buttonAction, buttonClass) {
     const orders = {};
@@ -400,6 +441,7 @@ function groupOrders(dataClass, containerId, statusBadge, statusClass, buttonTex
 
 // Групуємо замовлення при завантаженні
 $(document).ready(function() {
+    connectWebSocket();
     // Готуються
     groupOrders(
         '.order-data-1',
