@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Графік роботи</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .schedule-table { 
+            font-size: 13px; 
+            table-layout: fixed;
+            width: 100%;
+        }
+        .schedule-table th { 
+            background-color: #343a40; 
+            color: white;
+            padding: 8px 4px;
+            vertical-align: middle;
+            text-align: center;
+        }
+        .schedule-table td {
+            padding: 6px 8px;
+            vertical-align: top;
+            border: 1px solid #dee2e6;
+        }
+        .schedule-table tbody tr {
+            border-bottom: 1px solid #dee2e6;
+        }
+        .day-off { background-color: #f8d7da; }
+        .work-day { background-color: #d4edda; }
+        .employee-name { 
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 2px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .employee-name .text-muted {
+            font-size: 10px;
+            font-weight: normal;
+            font-style: italic;
+        }
+        .shift-name { 
+            color: #007bff; 
+            font-size: 11px;
+            display: block;
+        }
+        .btn-sm { 
+            font-size: 11px; 
+            padding: 4px 8px;
+            margin: 0;
+            white-space: nowrap;
+        }
+        .employee-card {
+            margin-bottom: 6px;
+            padding: 8px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .employee-card:hover {
+            background-color: #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .employee-card.active {
+            background-color: #d1ecf1;
+            border: 2px solid #0c5460;
+        }
+        .schedule-table .badge {
+            font-size: 11px;
+            padding: 3px 6px;
+        }
+        .employee-actions {
+            display: none;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #dee2e6;
+        }
+        .employee-actions.show {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .employee-actions .btn {
+            flex: 1;
+            min-width: 80px;
+        }
+        /* Компактна форма */
+        .form-inline .form-control {
+            font-size: 13px;
+        }
+        .form-inline .btn {
+            font-size: 13px;
+            padding: 6px 12px;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <h2 class="text-center mb-4">Графік роботи</h2>
+            
+            <!-- Навігація по тижнях -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a th:href="@{/schedule(weekStart=${previousWeek})}" class="btn btn-secondary">← Попередній тиждень</a>
+                <h4><span th:text="${#temporals.format(startDate, 'dd.MM.yyyy')}"></span> - 
+                    <span th:text="${#temporals.format(endDate, 'dd.MM.yyyy')}"></span></h4>
+                <a th:href="@{/schedule(weekStart=${nextWeek})}" class="btn btn-secondary">Наступний тиждень →</a>
+            </div>
+
+            <!-- Форма генерації графіку -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5>Згенерувати графік</h5>
+                    <form th:action="@{/schedule/generate}" method="post" class="form-inline">
+                        <label class="mr-2">Від:</label>
+                        <input type="date" name="startDate" th:value="${startDate}" class="form-control mr-2" required>
+                        <label class="mr-2">До:</label>
+                        <input type="date" name="endDate" th:value="${endDate}" class="form-control mr-2" required>
+                        <button type="submit" class="btn btn-primary">Згенерувати</button>
+                        <a th:href="@{/schedule/settings}" class="btn btn-info ml-2">Налаштування</a>
+                        <a th:href="@{/schedule/stats}" class="btn btn-success ml-2">Статистика</a>
+                        <a th:href="@{/schedule/export/excel(startDate=${startDate},endDate=${endDate})}" class="btn btn-warning ml-2">📥 Експорт в Excel</a>
+                        <a th:href="@{/shift-change-requests}" class="btn btn-secondary ml-2">📋 Запити на зміну</a>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Таблиця графіку -->
+            <table class="table table-bordered schedule-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Дата</th>
+                        <th style="width: 20%;">Зміна</th>
+                        <th style="width: 60%;">Працівники</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <th:block th:each="dateEntry : ${groupedSchedule}">
+                        <tr th:each="shiftEntry, shiftStat : ${dateEntry.value}">
+                            <td th:if="${shiftStat.index == 0}" 
+                                th:rowspan="${dateEntry.value.size()}" 
+                                th:text="${#temporals.format(dateEntry.key, 'EEEE, dd.MM.yyyy', new java.util.Locale('uk'))}">
+                            </td>
+                            <td>
+                                <span class="shift-name" th:text="${shiftEntry.value[0].shiftName}"></span>
+                            </td>
+                            <td>
+                                <div th:each="schedule : ${shiftEntry.value}" 
+                                     class="employee-card"
+                                     th:data-schedule-id="${schedule.scheduleId}"
+                                     th:data-date="${dateEntry.key}"
+                                     th:data-shift-id="${schedule.shiftId}"
+                                     th:data-is-day-off="${schedule.isDayOff}"
+                                     th:data-employee-id="${schedule.employeeId}"
+                                     onclick="toggleEmployeeActions(this)">
+                                    <div class="employee-name">
+                                        <span th:class="${schedule.isDayOff ? 'badge badge-danger' : 'badge badge-success'}"
+                                              th:text="${schedule.firstName + ' ' + schedule.lastName}"></span>
+                                        <small class="text-muted ml-1" th:text="'(' + ${schedule.roleName} + ')'"></small>
+                                        <small th:if="${schedule.isDayOff}" class="text-muted ml-1">(Вихідний)</small>
+                                    </div>
+                                    <div class="employee-actions">
+                                        <button class="btn btn-sm btn-warning" onclick="editFromCard(event, this.parentElement.parentElement)">
+                                            ✏️ Редагувати
+                                        </button>
+                                        <button class="btn btn-sm btn-info" onclick="requestFromCard(event, this.parentElement.parentElement)">
+                                            📝 Запит
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </th:block>
+                    <tr th:if="${#lists.isEmpty(scheduleList)}">
+                        <td colspan="3" class="text-center">Графік не створений. Натисніть "Згенерувати"</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно редагування -->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="editForm" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Редагувати запис</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="weekStart" th:value="${startDate}">
+                    <div class="form-group">
+                        <label>Зміна:</label>
+                        <select name="shiftId" id="shiftSelect" class="form-control">
+                            <option th:each="shift : ${shifts}" th:value="${shift.id}" th:text="${shift.name}"></option>
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="isDayOff" id="isDayOffCheck" class="form-check-input" value="true">
+                        <label class="form-check-label" for="isDayOffCheck">Вихідний день</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальне вікно запиту на зміну -->
+<div class="modal fade" id="requestModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="requestForm" action="/shift-change-request/create" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Запит на зміну графіку</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="scheduleId" id="requestScheduleId">
+                    <input type="hidden" name="employeeId" id="requestEmployeeId">
+                    <input type="hidden" name="weekStart" th:value="${startDate}">
+                    <div class="form-group">
+                        <label for="reason">Причина запиту:</label>
+                        <textarea class="form-control" id="reason" name="reason" rows="3" required 
+                                  placeholder="Наприклад: хворіє родич, особисті обставини..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Надіслати запит</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Скасувати</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+// Функція для показу/приховування кнопок при кліку на картку
+function toggleEmployeeActions(card) {
+    // Закриваємо всі інші відкриті картки
+    document.querySelectorAll('.employee-card.active').forEach(function(activeCard) {
+        if (activeCard !== card) {
+            activeCard.classList.remove('active');
+            activeCard.querySelector('.employee-actions').classList.remove('show');
+        }
+    });
+    
+    // Перемикаємо поточну картку
+    card.classList.toggle('active');
+    const actions = card.querySelector('.employee-actions');
+    actions.classList.toggle('show');
+}
+
+// Функції для кнопок всередині картки
+function editFromCard(event, card) {
+    event.stopPropagation(); // Зупиняємо спливання події
+    const scheduleId = card.getAttribute('data-schedule-id');
+    const date = card.getAttribute('data-date');
+    const shiftId = card.getAttribute('data-shift-id');
+    const isDayOff = card.getAttribute('data-is-day-off') === 'true';
+    editSchedule(scheduleId, date, shiftId, isDayOff);
+}
+
+function requestFromCard(event, card) {
+    event.stopPropagation(); // Зупиняємо спливання події
+    const scheduleId = card.getAttribute('data-schedule-id');
+    const employeeId = card.getAttribute('data-employee-id');
+    requestChange(scheduleId, employeeId);
+}
+
+// Оригінальні функції
+function editSchedule(scheduleId, date, shiftId, isDayOff) {
+    $('#editForm').attr('action', '/schedule/update/' + scheduleId);
+    $('#shiftSelect').val(shiftId);
+    $('#isDayOffCheck').prop('checked', isDayOff);
+    $('#editModal').modal('show');
+}
+
+function requestChange(scheduleId, employeeId) {
+    $('#requestScheduleId').val(scheduleId);
+    $('#requestEmployeeId').val(employeeId);
+    $('#reason').val('');
+    $('#requestModal').modal('show');
+}
+</script>
+</body>
+</html>
+

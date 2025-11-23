@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import com.example.demo.models.Orders;
 import com.example.demo.repositories.OrderRepository;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 
@@ -16,9 +17,11 @@ import org.springframework.stereotype.Service;
 public class OrderService {
 
     private final OrderRepository orderRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(OrderRepository orderRepository, SimpMessagingTemplate messagingTemplate) {
         this.orderRepository = orderRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public List<OrderDto> getOrders() {
@@ -39,6 +42,11 @@ public class OrderService {
 
     public void updateOrderStatus(Long status_id, Long orderId) {
         orderRepository.updateOrderStatus(status_id, orderId);
+
+        // Якщо замовлення стало "готовим" (3) – сповістимо офіціантів
+        if (status_id == 3L) {
+            messagingTemplate.convertAndSend("/topic/orders/ready", orderId);
+        }
     }
 
     public void updateTableStatus(Long table_status_id, Long orderId) {
@@ -47,6 +55,9 @@ public class OrderService {
 
     public void save(Orders orders){
         orderRepository.save(orders);
+
+        // Нове замовлення – сповіщаємо кухарів
+        messagingTemplate.convertAndSend("/topic/orders/new", orders.getId());
     }
 
     public List<OrderDto> getOrdersByDate(LocalDateTime startDate, LocalDateTime endDate) {

@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface CategoryRepository extends JpaRepository<Categories, Long> {
-    @Query("SELECT new com.example.demo.dto.CategoryDto(c.id, c.name, mi.name, mi.description, mi.price)"+
+    @Query("SELECT new com.example.demo.dto.CategoryDto(c.id, c.name, mi.id, mi.name, mi.description, mi.price)"+
     "FROM Categories c JOIN Menu_Items mi ON mi.category.id = c.id")
     List<CategoryDto> getCategories();
 }

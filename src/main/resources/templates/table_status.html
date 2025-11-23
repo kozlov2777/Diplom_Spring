@@ -1,33 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Столики</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статус столиків</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .table-card {
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 3px solid;
+            background: white;
+            cursor: pointer;
+        }
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .table-card.free {
+            border-color: #43e97b;
+            background: linear-gradient(135deg, rgba(67, 233, 123, 0.1) 0%, rgba(67, 233, 123, 0.05) 100%);
+        }
+        .table-card.occupied {
+            border-color: #f5576c;
+            background: linear-gradient(135deg, rgba(245, 87, 108, 0.1) 0%, rgba(245, 87, 108, 0.05) 100%);
+        }
+        .table-number {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .table-card.free .table-number {
+            color: #43e97b;
+        }
+        .table-card.occupied .table-number {
+            color: #f5576c;
+        }
+        .table-status {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .stats-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        .stats-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stats-label {
+            color: #6c757d;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="~{navbar}"></div>
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8 mt-5">
-            <h1 class="text-center mb-4">Столики</h1>
-            <table class="table">
-                <thead>
-                <tr>
-                    <th>Ід</th>
-                    <th>Статус</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="t : ${tables}">
-                    <td th:text="${t.id}"></td>
-                    <td th:text="${t.tableStatusName}"></td>
-                </tr>
-                </tbody>
-            </table>
+
+<div class="container mt-4 mb-5">
+    <div class="section-header">
+        <h1>🪑 Статус столиків</h1>
+        <p class="mb-0">Перегляд зайнятості столиків в реальному часі</p>
+    </div>
+
+    <!-- Статистика -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stats-card">
+                <div class="stats-value" id="totalTables">-</div>
+                <div class="stats-label">Всього столиків</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stats-card">
+                <div class="stats-value text-success" id="freeTables">-</div>
+                <div class="stats-label">Вільних</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stats-card">
+                <div class="stats-value text-danger" id="occupiedTables">-</div>
+                <div class="stats-label">Зайнятих</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Сітка столиків -->
+    <div class="card">
+        <div class="card-body p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">Столики</h4>
+                <div>
+                    <button class="btn btn-sm btn-outline-success" onclick="filterTables('free')">🟢 Вільні</button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="filterTables('occupied')">🔴 Зайняті</button>
+                    <button class="btn btn-sm btn-outline-primary active" onclick="filterTables('all')">Всі</button>
+                </div>
+            </div>
+            <div class="table-grid" id="tablesGrid">
+                <div th:each="t : ${tables}" 
+                     class="table-card"
+                     th:classappend="${t.tableStatusName == 'Вільний' ? 'free' : 'occupied'}"
+                     th:data-status="${t.tableStatusName}">
+                    <div class="table-number" th:text="'#' + ${t.id}"></div>
+                    <div class="table-status" th:text="${t.tableStatusName}"></div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+// Підрахунок статистики
+function updateStats() {
+    const total = $('.table-card').length;
+    const free = $('.table-card.free').length;
+    const occupied = $('.table-card.occupied').length;
+    
+    $('#totalTables').text(total);
+    $('#freeTables').text(free);
+    $('#occupiedTables').text(occupied);
+}
+
+// Фільтрація столиків
+function filterTables(filter) {
+    $('.btn-outline-success, .btn-outline-danger, .btn-outline-primary').removeClass('active');
+    
+    if (filter === 'all') {
+        $('.table-card').show();
+        $('[onclick*="all"]').addClass('active');
+    } else if (filter === 'free') {
+        $('.table-card').hide();
+        $('.table-card.free').show();
+        $('[onclick*="free"]').addClass('active');
+    } else if (filter === 'occupied') {
+        $('.table-card').hide();
+        $('.table-card.occupied').show();
+        $('[onclick*="occupied"]').addClass('active');
+    }
+}
+
+// Оновлення статистики при завантаженні
+$(document).ready(function() {
+    updateStats();
+});
+</script>
 </body>
 </html>

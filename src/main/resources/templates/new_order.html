@@ -1,57 +1,307 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Створити нове замовлення</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .order-summary {
+            position: sticky;
+            top: 20px;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .summary-total {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            padding-top: 15px;
+            margin-top: 10px;
+            border-top: 3px solid #667eea;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .filter-buttons {
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .filter-btn {
+            border-radius: 25px;
+            padding: 10px 25px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .filter-btn.active, .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        /* Акуратні дропдауни для блоку «Основна інформація» */
+        .select-clean {
+            line-height: 1.5 !important;      /* щоб текст не врізався по вертикалі */
+            padding-top: .5rem;
+            padding-bottom: .5rem;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="~{navbar}"></div>
-<div class="container">
-    <h1 class="text-center">Створити нове замовлення</h1>
-    <form method="post" th:action="@{/new_order}">
-        <div class="form-group">
-            <label for="table_id_id">Номер столика:</label>
-            <select class="form-control" id="table_id_id" name="table_id_id">
-                <option th:each="table : ${get_free_tables}" th:value="${table}" th:text="${table}"></option>
-            </select>
-        </div>
 
-        <div class="form-group">
-            <label for="employee_id">Офіціант:</label>
-            <select class="form-control" id="employee_id" name="employee_id">
-                <option th:each="employee : ${employeeList}" th:value="${employee.id}" th:text="${employee.last_name}"></option>
-            </select>
-        </div>
+<div class="container-fluid mt-4 mb-5">
+    <div class="section-header">
+        <h1>🍽️ Створити нове замовлення</h1>
+        <p class="mb-0">Оберіть столик, страви та підтвердіть замовлення</p>
+    </div>
 
-        <div class="form-group">
-            <label for="status_id">Статус:</label>
-            <select class="form-control" id="status_id" name="status_id">
-                <option th:each="status : ${statusesList}" th:value="${status.id}" th:text="${status.name}"></option>
-            </select>
-        </div>
+    <div class="row">
+        <!-- Ліва частина: Вибір страв -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h4>📋 Основна інформація</h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>🪑 Номер столика</label>
+                                <select class="form-control form-control-lg select-clean" id="tableSelect" name="tableSelect" required>
+                                    <option value="" disabled selected>Оберіть столик...</option>
+                                    <option th:each="table : ${get_free_tables}" th:value="${table}" th:text="'Столик ' + ${table}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>🧑‍🍳 Офіціант</label>
+                                <select class="form-control form-control-lg select-clean" id="employeeSelect" name="employeeSelect" required>
+                                    <option value="" disabled selected>Оберіть офіціанта...</option>
+                                    <option th:each="employee : ${employeeList}"
+                                            th:value="${employee.id}"
+                                            th:text="${employee.last_name}"></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>📌 Статус</label>
+                                <select class="form-control form-control-lg select-clean" id="statusSelect" name="statusSelect" required>
+                                    <option th:each="status : ${statusesList}" th:value="${status.id}" th:text="${status.name}"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-        <div id="items-group">
-            <div class="form-group item-group">
-                <label for="items">Блюда:</label>
-                <div class="input-group">
-                    <select class="custom-select" id="items" name="item[]">
-                        <option th:each="menu_item : ${itemsDetailForCreate}" th:value="${menu_item.id}" th:text="${menu_item.name}"></option>
-                    </select>
-                    <input type="number" class="form-control" name="quantity[]" min="1" value="1">
+            <!-- Пошук та фільтри -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <input type="text" id="searchInput" class="form-control mb-3" placeholder="🔍 Пошук страв...">
+                </div>
+            </div>
+
+            <!-- Меню страв -->
+            <h4 class="mb-3">🍽️ Меню страв</h4>
+            <div class="menu-grid" id="menuGrid">
+                <div class="menu-item-card" th:each="item : ${itemsDetailForCreate}" 
+                     th:data-id="${item.id}" 
+                     th:data-name="${item.name}"
+                     th:data-price="${item.price}">
+                    <h5 th:text="${item.name}"></h5>
+                    <p class="text-muted small" th:text="${item.description}"></p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="menu-item-price" th:text="${item.price + ' грн'}"></span>
+                        <div class="quantity-controls" style="display:none;">
+                            <button class="quantity-btn minus">−</button>
+                            <span class="quantity-display">1</span>
+                            <button class="quantity-btn plus">+</button>
+                        </div>
+                        <button class="btn btn-sm btn-primary add-to-order">Додати</button>
+                    </div>
                 </div>
             </div>
         </div>
-        <button type="button" id="add-item" class="btn btn-secondary">Добавити страву</button>
 
-        <button type="submit" class="btn btn-primary">Зберегти</button>
-    </form>
+        <!-- Права частина: Підсумок замовлення -->
+        <div class="col-lg-4">
+            <div class="order-summary">
+                <h4 class="mb-4">📝 Підсумок замовлення</h4>
+                <div id="orderItems">
+                    <p class="text-muted text-center">Корзина порожня<br>Додайте страви зліва</p>
+                </div>
+                <div class="summary-total">
+                    <div class="d-flex justify-content-between">
+                        <span>Всього:</span>
+                        <span id="totalPrice">0 грн</span>
+                    </div>
+                </div>
+                <button class="btn btn-success btn-lg btn-block mt-4" onclick="submitOrder()" id="submitBtn" disabled>
+                    ✓ Підтвердити замовлення
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
-    document.getElementById('add-item').addEventListener('click', function() {
-        var itemGroup = document.querySelector('.item-group').cloneNode(true);
-        document.getElementById('items-group').appendChild(itemGroup);
+// Сортування дропдаунів після завантаження сторінки
+$(document).ready(function() {
+    // Столики по зростанню (1,2,3,...)
+    const tableOptions = $('#tableSelect option').not(':first').get().sort(function(a, b) {
+        return Number(a.value) - Number(b.value);
     });
+    $('#tableSelect').append(tableOptions);
+
+    // Офіціанти по алфавіту
+    const empOptions = $('#employeeSelect option').not(':first').get().sort(function(a, b) {
+        return a.text.localeCompare(b.text, 'uk');
+    });
+    $('#employeeSelect').append(empOptions);
+});
+
+let orderItems = {};
+
+// Додавання/видалення страви
+$(document).on('click', '.add-to-order', function() {
+    const card = $(this).closest('.menu-item-card');
+    const id = card.data('id');
+    const name = card.data('name');
+    const price = parseFloat(card.data('price'));
+    
+    if (orderItems[id]) {
+        // Якщо вже є, видаляємо
+        delete orderItems[id];
+        card.removeClass('selected');
+        card.find('.quantity-controls').hide();
+        card.find('.add-to-order').show().text('Додати');
+    } else {
+        // Додаємо нову страву
+        orderItems[id] = { name, price, quantity: 1 };
+        card.addClass('selected');
+        card.find('.quantity-controls').show();
+        card.find('.add-to-order').hide();
+        card.find('.quantity-display').text('1');
+    }
+    
+    updateOrderSummary();
+});
+
+// Зміна кількості
+$(document).on('click', '.quantity-btn', function() {
+    const card = $(this).closest('.menu-item-card');
+    const id = card.data('id');
+    const isPlus = $(this).hasClass('plus');
+    
+    if (orderItems[id]) {
+        if (isPlus) {
+            orderItems[id].quantity++;
+        } else if (orderItems[id].quantity > 1) {
+            orderItems[id].quantity--;
+        }
+        card.find('.quantity-display').text(orderItems[id].quantity);
+        updateOrderSummary();
+    }
+});
+
+// Оновлення підсумку
+function updateOrderSummary() {
+    const container = $('#orderItems');
+    const itemCount = Object.keys(orderItems).length;
+    
+    if (itemCount === 0) {
+        container.html('<p class="text-muted text-center">Корзина порожня<br>Додайте страви зліва</p>');
+        $('#totalPrice').text('0 грн');
+        $('#submitBtn').prop('disabled', true);
+        return;
+    }
+    
+    let html = '';
+    let total = 0;
+    
+    for (let id in orderItems) {
+        const item = orderItems[id];
+        const sum = item.price * item.quantity;
+        total += sum;
+        
+        html += `
+            <div class="summary-item">
+                <div>
+                    <strong>${item.name}</strong><br>
+                    <small class="text-muted">${item.quantity} × ${item.price} грн</small>
+                </div>
+                <div class="text-right">
+                    <strong>${sum.toFixed(2)} грн</strong>
+                </div>
+            </div>
+        `;
+    }
+    
+    container.html(html);
+    $('#totalPrice').text(total.toFixed(2) + ' грн');
+    $('#submitBtn').prop('disabled', false);
+}
+
+// Пошук
+$('#searchInput').on('input', function() {
+    const search = $(this).val().toLowerCase();
+    $('.menu-item-card').each(function() {
+        const name = $(this).data('name').toLowerCase();
+        $(this).toggle(name.includes(search));
+    });
+});
+
+// Відправка замовлення
+function submitOrder() {
+    const tableId = $('#tableSelect').val();
+    const employeeId = $('#employeeSelect').val();
+    const statusId = $('#statusSelect').val();
+    
+    if (!tableId || !employeeId || !statusId) {
+        alert('Заповніть всі обов\'язкові поля!');
+        return;
+    }
+    
+    if (Object.keys(orderItems).length === 0) {
+        alert('Додайте хоча б одну страву!');
+        return;
+    }
+    
+    // Створюємо форму
+    const form = $('<form>', {
+        method: 'post',
+        action: '/new_order'
+    });
+    
+    form.append($('<input>', { type: 'hidden', name: 'table_id_id', value: tableId }));
+    form.append($('<input>', { type: 'hidden', name: 'employee_id', value: employeeId }));
+    form.append($('<input>', { type: 'hidden', name: 'status_id', value: statusId }));
+    
+    for (let id in orderItems) {
+        form.append($('<input>', { type: 'hidden', name: 'item[]', value: id }));
+        form.append($('<input>', { type: 'hidden', name: 'quantity[]', value: orderItems[id].quantity }));
+    }
+    
+    $('body').append(form);
+    form.submit();
+}
 </script>
 </body>
 </html>

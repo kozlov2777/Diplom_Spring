@@ -1,37 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Зарплати</title>
+    <title>Зарплата співробітників</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .salary-total {
+            font-weight: 700;
+            color: #28a745;
+        }
+        .salary-increase {
+            color: #28a745;
+        }
+        .salary-decrease {
+            color: #dc3545;
+        }
+        .table-salary th, .table-salary td {
+            vertical-align: middle;
+            font-size: 14px;
+        }
+        .table-salary thead th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border-color: #dee2e6;
+        }
+        .table-salary tbody tr:nth-child(even) {
+            background-color: #f8f9ff;
+        }
+        .badge-role {
+            font-size: 12px;
+            padding: 4px 8px;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="~{navbar}"></div>
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8 mt-5">
-            <h1 class="text-center mb-4">Зарплати</h1>
-            <table class="table">
+<div class="container-fluid mt-4">
+    <h2 class="text-center mb-4">💰 Зарплата співробітників</h2>
+    
+    <!-- Фільтр по періоду -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form th:action="@{/salary}" method="get" class="form-inline">
+                <label class="mr-2">Період:</label>
+                <input type="date" name="startDate" th:value="${startDate}" class="form-control mr-2" required>
+                <label class="mr-2">-</label>
+                <input type="date" name="endDate" th:value="${endDate}" class="form-control mr-2" required>
+                <button type="submit" class="btn btn-primary">Показати</button>
+                <a th:href="@{/salary/settings}" class="btn btn-info ml-2">⚙️ Налаштування ставок</a>
+                <a th:href="@{/salary/export/excel(startDate=${startDate}, endDate=${endDate})}"
+                   class="btn btn-success ml-2">⬇️ Експорт в Excel</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Топ-3 працівники -->
+    <div class="alert alert-warning" th:if="${!#lists.isEmpty(salaries)}">
+        <h5>🏆 Топ-3 працівники місяця:</h5>
+        <span th:each="salary, iterStat : ${salaries}" th:if="${iterStat.index < 3}">
+            <strong th:text="${iterStat.index + 1 + '. ' + salary.firstName + ' ' + salary.lastName}"></strong> 
+            (<span th:text="${salary.totalSalary + ' грн'}"></span>)
+            <span th:if="${iterStat.index < 2}">, </span>
+        </span>
+    </div>
+
+    <!-- Таблиця зарплат -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-salary">
                 <thead>
-                <tr>
-                    <th>Ім’я</th>
-                    <th>Фамілія</th>
-                    <th>Зарплата</th>
-                </tr>
+                    <tr>
+                        <th>#</th>
+                        <th>Працівник</th>
+                        <th>Роль</th>
+                        <th>Годин</th>
+                        <th>Ставка, грн/год</th>
+                        <th>База, грн</th>
+                        <th>Замовлень</th>
+                        <th>Бонус за замовлення, грн</th>
+                        <th>Відгуків / рейтинг</th>
+                        <th>Премія за відгуки, грн</th>
+                        <th>Прогули</th>
+                        <th>Штрафи, грн</th>
+                        <th>Всього, грн</th>
+                    </tr>
                 </thead>
                 <tbody>
-                <tr th:each="s : ${salary}">
-                    <td th:text="${s.firstName}"></td>
-                    <td th:text="${s.lastName}"></td>
-                    <td th:text="${s.salary}"></td>
-                </tr>
+                    <tr th:each="salary, iterStat : ${salaries}">
+                        <td th:text="${iterStat.index + 1}"></td>
+                        <td th:text="${salary.lastName + ' ' + salary.firstName}"></td>
+                        <td>
+                            <span class="badge badge-secondary badge-role" th:text="${salary.roleName}"></span>
+                        </td>
+                        <td th:text="${salary.hoursWorked}"></td>
+                        <td th:text="${salary.hourlyRate}"></td>
+                        <td th:text="${#numbers.formatDecimal(salary.baseSalary, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="${salary.ordersCompleted}"></td>
+                        <td th:text="${#numbers.formatDecimal(salary.orderBonusTotal, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="${salary.reviewsCount + ' / ' + (salary.averageRating != null ? salary.averageRating : 0)}"></td>
+                        <td th:text="${#numbers.formatDecimal(salary.reviewBonus, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="${salary.absences}"></td>
+                        <td th:text="${#numbers.formatDecimal(salary.penaltiesTotal, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="salary-total" th:text="${#numbers.formatDecimal(salary.totalSalary, 0, 'COMMA', 2, 'POINT')}"></td>
+                    </tr>
                 </tbody>
-
-
             </table>
         </div>
     </div>
+
+    <div th:if="${#lists.isEmpty(salaries)}" class="alert alert-info text-center mt-4">
+        Немає даних за вибраний період. Можливо ще не згенерований графік роботи.
+    </div>
 </div>
+
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 </body>
 </html>

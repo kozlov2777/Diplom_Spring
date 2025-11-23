@@ -1,67 +1,142 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Registration</title>
+    <title>Реєстрація працівника</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
     <style>
         body {
-            padding-top: 50px;
-        }
-        .form-container {
-            max-width: 400px;
-            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
         }
-        .form-title {
+        .register-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 100%;
+        }
+        .register-header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
-        .login-btn {
-            text-align: left;
-            margin-bottom: 20px;
+        .register-header h2 {
+            color: #667eea;
+            font-weight: 700;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .role-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .role-option {
+            flex: 1;
+            min-width: 140px;
+            padding: 15px;
+            border: 2px solid #e0e6ed;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .role-option:hover {
+            border-color: #667eea;
+        }
+        .role-option.selected {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-color: #667eea;
+            border-width: 3px;
+        }
+        .role-option input {
+            display: none;
+        }
+        .role-icon {
+            font-size: 30px;
+            margin-bottom: 5px;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="login-btn">
-        <a class="btn btn-primary" href="/login">Увійти</a>
+<div class="register-container fade-in">
+    <div class="register-header">
+        <h2>🍽️ Реєстрація працівника</h2>
+        <p class="text-muted">Створення нового облікового запису</p>
     </div>
-    <div class="form-container">
-        <h2 class="form-title">Register Employee</h2>
-        <form method="post" action="/register">
-            <div class="form-group">
-                <label for="firstName">First Name:</label>
-                <input type="text" class="form-control" id="firstName" name="firstName" required>
+    
+    <form method="post" action="/register" id="registerForm">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="firstName">Ім'я</label>
+                    <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Введіть ім'я" required>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label for="lastName">Last Name:</label>
-                <input type="text" class="form-control" id="lastName" name="lastName" required>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="lastName">Прізвище</label>
+                    <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Введіть прізвище" required>
+                </div>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" class="form-control" id="username" name="username" required>
+        <div class="form-group">
+            <label for="username">Логін</label>
+            <input type="text" class="form-control" id="username" name="username" placeholder="Введіть логін" required>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Пароль</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Мінімум 6 символів" required minlength="6">
+        </div>
+
+        <div class="form-group">
+            <label>Роль</label>
+            <div class="role-selector">
+                <label class="role-option">
+                    <input type="radio" name="roleId" value="2" required>
+                    <div class="role-icon">👨‍🍳</div>
+                    <div><strong>Кухар</strong></div>
+                </label>
+                <label class="role-option">
+                    <input type="radio" name="roleId" value="3" required>
+                    <div class="role-icon">🧑‍💼</div>
+                    <div><strong>Офіціант</strong></div>
+                </label>
+                <label class="role-option">
+                    <input type="radio" name="roleId" value="1" required>
+                    <div class="role-icon">👑</div>
+                    <div><strong>Адмін</strong></div>
+                </label>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-
-            <div class="form-group">
-                <label for="roleId">Role ID:</label>
-                <input type="number" class="form-control" id="roleId" name="roleId" required>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Register</button>
-        </form>
+        <button type="submit" class="btn btn-primary btn-block btn-lg mt-4">Зареєструватися</button>
+    </form>
+    
+    <div class="text-center mt-3 pt-3" style="border-top: 1px solid #e0e6ed;">
+        <p class="mb-2">Вже є обліковий запис?</p>
+        <a href="/login" class="btn btn-outline-primary">Увійти</a>
     </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+$('.role-option').click(function() {
+    $('.role-option').removeClass('selected');
+    $(this).addClass('selected');
+    $(this).find('input').prop('checked', true);
+});
+</script>
 </body>
 </html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Залишити відгук</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .feedback-container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 100%;
+        }
+        .feedback-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .feedback-header h2 {
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .rating-container {
+            text-align: center;
+            margin: 30px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 15px;
+        }
+        .rating-stars {
+            font-size: 50px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-direction: row-reverse;
+        }
+        .rating-stars input {
+            display: none;
+        }
+        .rating-stars label {
+            cursor: pointer;
+            color: #ddd;
+            transition: all 0.3s;
+        }
+        .rating-stars label:hover,
+        .rating-stars label:hover ~ label,
+        .rating-stars input:checked ~ label {
+            color: #ffc107;
+            transform: scale(1.2);
+        }
+        .success-container {
+            text-align: center;
+            padding: 40px;
+        }
+        .success-icon {
+            font-size: 80px;
+            color: #43e97b;
+            margin-bottom: 20px;
+        }
+        .error-container {
+            text-align: center;
+            padding: 40px;
+        }
+        .error-icon {
+            font-size: 80px;
+            color: #f5576c;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="feedback-container fade-in">
+    <!-- Успішне відправлення -->
+    <div th:if="${success}" class="success-container">
+        <div class="success-icon">✓</div>
+        <h2 style="color: #43e97b;">Дякуємо за ваш відгук!</h2>
+        <p class="text-muted mt-3">Ваша думка допомагає нам ставати кращими</p>
+        <p class="mt-4">Можете закрити це вікно.</p>
+    </div>
+    
+    <!-- Помилка -->
+    <div th:if="${error}" class="error-container">
+        <div class="error-icon">✗</div>
+        <h2 style="color: #f5576c;">Помилка</h2>
+        <p class="text-muted mt-3" th:text="${error}"></p>
+    </div>
+    
+    <!-- Форма відгуку -->
+    <div th:if="${success == null and error == null}">
+        <div class="feedback-header">
+            <h2>⭐ Залишити відгук</h2>
+            <p class="text-muted">Розкажіть про ваш досвід</p>
+        </div>
+        
+        <form th:action="@{/feedback/{orderId}(orderId=${orderId})}" method="post">
+            <div class="rating-container">
+                <label class="mb-3" style="font-weight: 600; font-size: 18px;">Оцініть обслуговування:</label>
+                <div class="rating-stars">
+                    <input type="radio" name="rating" value="5" id="star5" required>
+                    <label for="star5">★</label>
+                    <input type="radio" name="rating" value="4" id="star4">
+                    <label for="star4">★</label>
+                    <input type="radio" name="rating" value="3" id="star3">
+                    <label for="star3">★</label>
+                    <input type="radio" name="rating" value="2" id="star2">
+                    <label for="star2">★</label>
+                    <input type="radio" name="rating" value="1" id="star1">
+                    <label for="star1">★</label>
+                </div>
+                <small class="text-muted mt-2 d-block">Натисніть на зірки для оцінки</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="customerName">👤 Ваше ім'я (не обов'язково):</label>
+                <input type="text" class="form-control" id="customerName" name="customerName" placeholder="Введіть ваше ім'я">
+            </div>
+            
+            <div class="form-group">
+                <label for="comment">💬 Коментар:</label>
+                <textarea class="form-control" id="comment" name="comment" rows="5" required placeholder="Розкажіть про ваш досвід у нашому ресторані..."></textarea>
+                <small class="text-muted">Що вам сподобалось? Що можна покращити?</small>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block btn-lg mt-4">
+                Відправити відгук ✓
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+// Візуальний зворотний зв'язок для зірок
+$('.rating-stars label').on('click', function() {
+    const rating = $(this).prev('input').val();
+    let message = '';
+    switch(rating) {
+        case '5': message = 'Відмінно! 😍'; break;
+        case '4': message = 'Добре! 😊'; break;
+        case '3': message = 'Нормально 🙂'; break;
+        case '2': message = 'Не дуже 😕'; break;
+        case '1': message = 'Погано 😞'; break;
+    }
+    $('.rating-container small').text(message);
+});
+</script>
+</body>
+</html>

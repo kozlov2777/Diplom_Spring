@@ -1,53 +1,77 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
 <head>
-    <title>Spring Security Example</title>
+    <title>Вхід в систему</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
     <style>
-        .form-container {
-            max-width: 400px;
-            margin: 0 auto;
-            margin-top: 100px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .register-btn {
-            text-align: left;
-            margin-bottom: 20px;
+        .login-container {
+            background: white;
+            padding: 50px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 450px;
+            width: 100%;
         }
-        .form-title {
+        .login-header {
             text-align: center;
-            font-size: 24px;
-            margin-bottom: 20px;
+            margin-bottom: 40px;
+        }
+        .login-header h2 {
+            color: #667eea;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        .login-header p {
+            color: #6c757d;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .alert {
+            border-radius: 10px;
+        }
+        .register-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid #e0e6ed;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="register-btn">
-        <a class="btn btn-primary" href="/register">Зареєструватися</a>
+<div class="login-container fade-in">
+    <div class="login-header">
+        <h2>🍽️ Ресторан</h2>
+        <p>Увійдіть в систему для продовження</p>
     </div>
-    <div class="form-container">
-        <h2 class="form-title">Вхід</h2>
-        <div th:if="${param.error}">
-            Invalid username and password.
-        </div>
-        <div th:if="${param.logout}">
-            You have been logged out.
-        </div>
-        <form th:action="@{/login}" method="post">
-            <div class="form-group">
-                <label for="username">User Name:</label>
-                <input type="text" class="form-control" id="username" name="username">
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" class="form-control" id="password" name="password">
-            </div>
-            <button type="submit" class="btn btn-primary">Sign In</button>
-        </form>
+    
+    <div th:if="${param.error}" class="alert alert-danger">
+        <strong>Помилка!</strong> Невірний логін або пароль
     </div>
+    <div th:if="${param.logout}" class="alert alert-success">
+        Ви успішно вийшли з системи
+    </div>
+    
+    <form th:action="@{/login}" method="post">
+        <div class="form-group">
+            <label for="username">👤 Ім'я користувача</label>
+            <input type="text" class="form-control" id="username" name="username" placeholder="Введіть логін" required autofocus>
+        </div>
+        <div class="form-group">
+            <label for="password">🔒 Пароль</label>
+            <input type="password" class="form-control" id="password" name="password" placeholder="Введіть пароль" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg">Увійти</button>
+    </form>
 </div>
 </body>
 </html>

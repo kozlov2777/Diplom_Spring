@@ -1,41 +1,180 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="uk" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Деталі замовлення</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .order-info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        .order-info-item {
+            margin-bottom: 15px;
+        }
+        .order-info-label {
+            font-size: 14px;
+            opacity: 0.9;
+            text-transform: uppercase;
+        }
+        .order-info-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .item-row {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s;
+        }
+        .item-row:hover {
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+        .item-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .item-quantity {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .item-price {
+            font-size: 22px;
+            font-weight: bold;
+            color: #43e97b;
+        }
+        .feedback-card {
+            background: linear-gradient(135deg, rgba(67, 233, 123, 0.1) 0%, rgba(79, 172, 254, 0.1) 100%);
+            border: 2px solid #43e97b;
+        }
+    </style>
 </head>
 <body>
 <div th:replace="~{navbar}"></div>
-<div class="container">
-    <h1 class="text-center">Деталі замовлення</h1>
-    <table class="table">
-        <thead class="thead-dark">
-        <tr>
-            <th>ID</th>
-            <th>Блюдо</th>
-            <th>Кількість</th>
-            <th>Ціна</th>
-            <th>Дата створення</th>
-            <th>Офіційник</th>
-            <th>Номер столика</th>
-            <th>Статус</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="order : ${orderDetailList}">
-            <td th:text="${order.id}"></td>
-            <td th:text="${order.itemName}"></td>
-            <td th:text="${order.quantity}"></td>
-            <td th:text="${order.price}"></td>
-            <td th:text="${order.createdAt}"></td>
-            <td th:text="${order.lastName}"></td>
-            <td th:text="${order.tableId}"></td>
-            <td th:text="${order.status}"></td>
-        </tr>
-        </tbody>
-    </table>
+
+<div class="container mt-4 mb-5">
+    <div class="section-header">
+        <h1>📋 Деталі замовлення</h1>
+        <p class="mb-0">Повна інформація про замовлення</p>
+    </div>
+
+    <!-- Інформація про замовлення -->
+    <div class="order-info-card" th:if="${!orderDetailList.isEmpty()}">
+        <div class="row">
+            <div class="col-md-3 order-info-item">
+                <div class="order-info-label">ID Замовлення</div>
+                <div class="order-info-value" th:text="'#' + ${orderDetailList[0].id}"></div>
+            </div>
+            <div class="col-md-3 order-info-item">
+                <div class="order-info-label">Столик</div>
+                <div class="order-info-value" th:text="'№' + ${orderDetailList[0].tableId}"></div>
+            </div>
+            <div class="col-md-3 order-info-item">
+                <div class="order-info-label">Офіціант</div>
+                <div class="order-info-value" th:text="${orderDetailList[0].lastName}"></div>
+            </div>
+            <div class="col-md-3 order-info-item">
+                <div class="order-info-label">Статус</div>
+                <div class="order-info-value">
+                    <span class="badge badge-light" th:text="${orderDetailList[0].status}"></span>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-6 order-info-item">
+                <div class="order-info-label">📅 Дата створення</div>
+                <div class="order-info-value" style="font-size: 18px;" th:text="${orderDetailList[0].createdAt}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Страви в замовленні -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h4 class="mb-4">🍽️ Страви в замовленні</h4>
+            <div th:each="order : ${orderDetailList}" class="item-row">
+                <div class="row align-items-center">
+                    <div class="col-md-5">
+                        <div class="item-name" th:text="${order.itemName}"></div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <div class="item-quantity">
+                            <span th:text="'Кількість: ' + ${order.quantity}"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <small class="text-muted">Ціна за одиницю</small>
+                        <div th:text="${order.price + ' грн'}"></div>
+                    </div>
+                    <div class="col-md-2 text-right">
+                        <small class="text-muted">Сума</small>
+                        <div class="item-price" th:text="${order.price * order.quantity + ' грн'}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Посилання для відгуку -->
+    <div class="card feedback-card" th:if="${orderId != null}">
+        <div class="card-body">
+            <h5>⭐ Посилання для відгуку клієнта</h5>
+            <p class="text-muted mb-3">Клієнт може залишити відгук про обслуговування та якість страв</p>
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" 
+                       th:value="${'http://localhost:8080/feedback/' + orderId}" 
+                       id="feedbackLink" readonly>
+                <div class="input-group-append">
+                    <button class="btn btn-success" onclick="copyToClipboard()">
+                        📋 Копіювати
+                    </button>
+                </div>
+            </div>
+            <small class="text-muted">
+                💡 Порада: Напишіть на чеку: <strong>"Залиште відгук: localhost:8080/feedback/<span th:text="${orderId}"></span>"</strong>
+            </small>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="/orders_view" class="btn btn-primary btn-lg">
+            ← Повернутися до списку
+        </a>
+    </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+function copyToClipboard() {
+    var copyText = document.getElementById("feedbackLink");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+    
+    // Показуємо повідомлення
+    var btn = event.target;
+    var originalText = btn.innerHTML;
+    btn.innerHTML = '✓ Скопійовано!';
+    btn.classList.add('btn-primary');
+    btn.classList.remove('btn-success');
+    
+    setTimeout(function() {
+        btn.innerHTML = originalText;
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-success');
+    }, 2000);
+}
+</script>
 </body>
 </html>

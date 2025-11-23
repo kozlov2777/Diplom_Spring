@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Аналітика продажів</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <style>
+        .metric-card {
+            padding: 30px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-bottom: 20px;
+        }
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+    </style>
+</head>
+<body>
+<div th:replace="~{navbar}"></div>
+<div class="container-fluid mt-4">
+    <h2>📊 Аналітика продажів</h2>
+    
+    <!-- Фільтр періоду -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form th:action="@{/analytics}" method="get" class="form-inline">
+                <label class="mr-2">Період:</label>
+                <input type="date" name="startDate" th:value="${startDate}" class="form-control mr-2" required>
+                <label class="mr-2">-</label>
+                <input type="date" name="endDate" th:value="${endDate}" class="form-control mr-2" required>
+                <button type="submit" class="btn btn-primary">Показати</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Метрики -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="metric-card">
+                <div>Середній чек</div>
+                <div class="metric-value" th:text="${#numbers.formatDecimal(averageCheck, 0, 'COMMA', 2, 'POINT')} + ' грн'"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="metric-card">
+                <div>Загальна виручка</div>
+                <div class="metric-value" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' грн'"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Графік виручки -->
+    <div class="card">
+        <div class="card-header">
+            <h5>📈 Виручка по днях</h5>
+        </div>
+        <div class="card-body">
+            <div class="chart-container">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+const revenueData = /*[[${dailyRevenue}]]*/ {};
+
+const labels = Object.keys(revenueData);
+const values = Object.values(revenueData);
+
+const ctx = document.getElementById('revenueChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: 'Виручка (грн)',
+            data: values,
+            borderColor: 'rgb(102, 126, 234)',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: true }
+        }
+    }
+});
+</script>
+
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>
+

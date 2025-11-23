@@ -12,6 +12,6 @@ public interface TableRepository extends JpaRepository<Tables, Long> {
     @Query("SELECT new com.example.demo.dto.TableStatusDto(t.id, ts.name) FROM Tables t JOIN Table_Statuses ts ON t.tableStatus.id = ts.id ORDER BY t.id ASC")
     List<TableStatusDto> getTables();
 
-    @Query("SELECT t.id FROM Tables t WHERE t.tableStatus.id = 1")
+    @Query("SELECT t.id FROM Tables t WHERE t.tableStatus.id = 1 ORDER BY t.id ASC")
     List<Long> free_tables();
 }
