@@ -26,15 +26,19 @@ public class ReviewController {
     public String showFeedbackForm(@PathVariable Long orderId, Model model) {
         if (!reviewService.orderExists(orderId)) {
             model.addAttribute("error", "Замовлення не знайдено");
+            model.addAttribute("success", null);
             return "feedback_form";
         }
 
         if (reviewService.hasReview(orderId)) {
             model.addAttribute("error", "Ви вже залишили відгук для цього замовлення");
+            model.addAttribute("success", null);
             return "feedback_form";
         }
 
         model.addAttribute("orderId", orderId);
+        model.addAttribute("success", null);
+        model.addAttribute("error", null);
         return "feedback_form";
     }
 
@@ -46,6 +50,7 @@ public class ReviewController {
                                  Model model) {
         if (reviewService.hasReview(orderId)) {
             model.addAttribute("error", "Ви вже залишили відгук для цього замовлення");
+            model.addAttribute("success", null);
             return "feedback_form";
         }
 
@@ -53,6 +58,7 @@ public class ReviewController {
         reviewService.createReview(reviewCreateDTO);
 
         model.addAttribute("success", "Дякуємо за ваш відгук!");
+        model.addAttribute("error", null);
         return "feedback_form";
     }
 

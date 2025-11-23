@@ -97,7 +97,7 @@
     </div>
     
     <!-- Форма відгуку -->
-    <div th:if="${!success && !error}">
+    <div th:if="${success == null and error == null}">
         <div class="feedback-header">
             <h2>⭐ Залишити відгук</h2>
             <p class="text-muted">Розкажіть про ваш досвід</p>
